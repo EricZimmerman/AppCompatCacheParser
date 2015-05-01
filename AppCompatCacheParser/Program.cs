@@ -30,7 +30,7 @@ namespace AppCompatCacheParser
             p.Setup(arg => arg.FindEvidence).As('f',"FindEvidence").WithDescription("Be careful what you ask for").SetDefault(false);
 
             var header =
-                $"AppCompatCache Parser version {Assembly.GetExecutingAssembly().GetName().Version}\r\nAuthor: Eric Zimmerman (saericzimmerman@gmail.com)";
+                $"AppCompatCache Parser version {Assembly.GetExecutingAssembly().GetName().Version}\r\nAuthor: Eric Zimmerman (saericzimmerman@gmail.com)\r\nhttps://github.com/EricZimmerman/AppCompatCacheParser";
             p.SetupHelp("?", "help").WithHeader(header).Callback(text => logger.Info(text));
 
             var result =  p.Parse(args);
