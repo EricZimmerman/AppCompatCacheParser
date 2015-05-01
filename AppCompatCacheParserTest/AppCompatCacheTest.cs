@@ -40,14 +40,14 @@ namespace AppCompatCacheTest
         [Test]
         public void Win80ShouldFindEntries()
         {
-            var a = new AppCompatCache.Windows8x(Win80, "00ts");
+            var a = new AppCompatCache.Windows8x(Win80,AppCompatCache.AppCompatCache.OperatingSystemVersion.Windows80);
             Check.That(a.Entries.Count).Equals(58);
         }
 
         [Test]
         public void Win81ShouldFindEntries()
         {
-            var a = new AppCompatCache.Windows8x(Win81, "10ts");
+            var a = new AppCompatCache.Windows8x(Win81,  AppCompatCache.AppCompatCache.OperatingSystemVersion.Windows81);
             Check.That(a.Entries.Count).Equals(1024);
         }
 

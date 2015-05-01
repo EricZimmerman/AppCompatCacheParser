@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Registry;
@@ -7,6 +8,16 @@ namespace AppCompatCache
 {
     public class AppCompatCache
     {
+        public enum OperatingSystemVersion
+        {
+            Windows7X86,
+            Windows7X64,
+            Windows80,
+            Windows81,
+            Windows10,
+            Unknown
+        }
+
         public AppCompatCache(string filename)
         {
             byte[] rawBytes = null;
@@ -20,19 +31,24 @@ namespace AppCompatCache
 
                 if (subKey == null)
                 {
-                    Console.WriteLine(@"'CurrentControlSet\Control\Session Manager\AppCompatCache' key not found! Exiting");
+                    Console.WriteLine(
+                        @"'CurrentControlSet\Control\Session Manager\AppCompatCache' key not found! Exiting");
                     return;
                 }
 
-                rawBytes = (byte[])subKey.GetValue("AppCompatCache", null);
-
+                rawBytes = (byte[]) subKey.GetValue("AppCompatCache", null);
             }
             else
             {
+                if (File.Exists(filename) == false)
+                {
+                    throw new FileNotFoundException($"File not found ({filename})!");
+                }
+
                 var hive = new RegistryHiveOnDemand(filename);
                 var subKey = hive.GetKey("Select");
 
-                var currentCtlSet = int.Parse( subKey.Values.Single(c => c.ValueName == "Current").ValueData);
+                var currentCtlSet = int.Parse(subKey.Values.Single(c => c.ValueName == "Current").ValueData);
 
                 subKey = hive.GetKey("ControlSet00" + currentCtlSet + @"\Control\Session Manager\AppCompatCache");
 
@@ -51,68 +67,59 @@ namespace AppCompatCache
             }
 
             IAppCompatCache appCache = null;
-            OperatingSystem = "Unknown";
+            OperatingSystem = OperatingSystemVersion.Unknown;
 
-            var sig = string.Empty;
+            string signature;
 
             //TODO check minimum length of rawBytes and throw exception if not enough data
-            
-sig = Encoding.ASCII.GetString(rawBytes, 128, 4);
-           
-               
-            if ((sig == "00ts"))
+
+            signature = Encoding.ASCII.GetString(rawBytes, 128, 4);
+
+            if ((signature == "00ts"))
             {
-                // win 8.0
-                OperatingSystem = "Windows 8.0";
-                appCache = new Windows8x(rawBytes, "00ts");
+                OperatingSystem = OperatingSystemVersion.Windows80;
+                appCache = new Windows8x(rawBytes, OperatingSystem);
             }
-            else if (sig == "10ts")
+            else if (signature == "10ts")
             {
-                // win 8.1
-                OperatingSystem = "Windows 8.1";
-                appCache = new Windows8x(rawBytes, "10ts");
+                OperatingSystem = OperatingSystemVersion.Windows81;
+                appCache = new Windows8x(rawBytes, OperatingSystem);
             }
             else
             {
-                //'is it windows 10?
-                sig = Encoding.ASCII.GetString(rawBytes, 48, 4);
-                if ((sig == "10ts"))
+                //is it windows 10?
+                signature = Encoding.ASCII.GetString(rawBytes, 48, 4);
+                if ((signature == "10ts"))
                 {
-                    OperatingSystem = "Windows 10";
+                    OperatingSystem = OperatingSystemVersion.Windows10;
                     appCache = new Windows10(rawBytes);
                 }
                 else
                 {
                     //win7
-
                     if (rawBytes[0] == 0xee & rawBytes[1] == 0xf & rawBytes[2] == 0xdc & rawBytes[3] == 0xba)
                     {
-                        var is32 = AppCompatCache.Is32Bit(filename);
+                        var is32 = Is32Bit(filename);
 
                         if (is32)
                         {
-                            OperatingSystem = "Windows 7 x86";
+                            OperatingSystem = OperatingSystemVersion.Windows7X86;
                         }
                         else
                         {
-                            OperatingSystem = "Windows 7 x86";
+                            OperatingSystem = OperatingSystemVersion.Windows7X64;
                         }
 
                         appCache = new Windows7(rawBytes, is32);
                     }
                 }
-
             }
 
-
             Cache = appCache;
-
-
         }
 
         public IAppCompatCache Cache { get; }
-
-        public string OperatingSystem { get; }
+        public OperatingSystemVersion OperatingSystem { get; }
 
         public static bool Is32Bit(string fileName)
         {
@@ -121,7 +128,12 @@ sig = Encoding.ASCII.GetString(rawBytes, 128, 4);
                 var keyCurrUser = Microsoft.Win32.Registry.LocalMachine;
                 var subKey = keyCurrUser.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\Environment");
 
-                return subKey.GetValue("PROCESSOR_ARCHITECTURE").ToString().Equals("x86");
+                var val = subKey?.GetValue("PROCESSOR_ARCHITECTURE");
+
+                if (val != null)
+                {
+                    return val.ToString().Equals("x86");
+                }
             }
             else
             {
@@ -132,18 +144,15 @@ sig = Encoding.ASCII.GetString(rawBytes, 128, 4);
 
                 subKey = hive.GetKey("ControlSet00" + currentCtlSet + @"\Control\Session Manager\Environment");
 
-                if ((subKey != null))
-                {
-                    var val = subKey.Values.SingleOrDefault(c => c.ValueName == "PROCESSOR_ARCHITECTURE");
+                var val = subKey?.Values.SingleOrDefault(c => c.ValueName == "PROCESSOR_ARCHITECTURE");
 
-                    if (val != null)
-                    {
-                        return val.ValueData.Equals("x86");
-                    }
+                if (val != null)
+                {
+                    return val.ValueData.Equals("x86");
                 }
             }
 
-            return true;
+            throw new NullReferenceException("Unable to determine CPU architecture!");
         }
     }
 }

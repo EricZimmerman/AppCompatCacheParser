@@ -7,11 +7,19 @@ namespace AppCompatCache
 {
     public class Windows8x : IAppCompatCache
     {
-        public Windows8x(byte[] rawBytes, string signature)
+        public Windows8x(byte[] rawBytes, AppCompatCache.OperatingSystemVersion os)
         {
             Entries = new List<CacheEntry>();
 
             var index = 128;
+
+            var signature = "00ts";
+
+            if (os == AppCompatCache.OperatingSystemVersion.Windows81)
+            {
+                signature = "10ts";
+            }
+            
 
             while (index <= rawBytes.Length)
             {

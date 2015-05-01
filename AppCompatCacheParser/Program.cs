@@ -21,12 +21,7 @@ namespace AppCompatCacheParser
 
             //http://joshclose.github.io/CsvHelper/ ??
 
-            //tsv
-            //default is to dump live system to current working dir
-            //live filename == WinXX_MachineWName_AppCompatCache.tsv
-            //hive filename == WinXX_HiveName_AppCompatCache.tsv
-
-            //TODO Nlog color console
+            var logger = NLog.LogManager.GetCurrentClassLogger();
 
             var p = new FluentCommandLineParser<ApplicationArguments>();
 
@@ -36,8 +31,7 @@ namespace AppCompatCacheParser
 
             var header =
                 $"AppCompatCache Parser version {Assembly.GetExecutingAssembly().GetName().Version}\r\nAuthor: Eric Zimmerman (saericzimmerman@gmail.com)";
-            p.SetupHelp("?", "help").WithHeader(header).Callback(text => Console.WriteLine(text));
-      
+            p.SetupHelp("?", "help").WithHeader(header).Callback(text => logger.Info(text));
 
             var result =  p.Parse(args);
 
@@ -49,7 +43,7 @@ namespace AppCompatCacheParser
 
             if (p.Object.FindEvidence)
             {
-                Console.WriteLine("\r\nThis is not the forensics program you are looking for...");
+                logger.Info("\r\nThis is not the forensics program you are looking for...");
                 return;
             }
 
@@ -60,41 +54,74 @@ namespace AppCompatCacheParser
                 hiveToProcess = p.Object.HiveFile;
             }
 
-            Console.WriteLine(header);
-            Console.WriteLine();
+            logger.Info(header);
+            logger.Info("");
 
-            Console.WriteLine($"Processing hive '{hiveToProcess}'");
-
-            var outFileBase = "Something.tsv";
-            var outFilename = Path.Combine(p.Object.SaveTo, outFileBase);
-
-            Console.WriteLine($"Saving results to '{outFilename}'");
-
-            Console.WriteLine();
-
-            var appCompat = new AppCompatCache.AppCompatCache(p.Object.HiveFile);
+            logger.Info($"Processing hive '{hiveToProcess}'");
 
 
-            if ((appCompat.Cache != null))
+
+            logger.Info("");
+
+            try
             {
-                Console.WriteLine($"Found {appCompat.Cache.Entries.Count:N0} cache entries for {appCompat.OperatingSystem}");
-                Console.WriteLine("Saving...");
-                var tw = new StreamWriter(outFilename);
-                var csv = new CsvWriter(tw);
-                csv.Configuration.RegisterClassMap<MyClassMap>();
-                csv.Configuration.Delimiter = "\t";
-                csv.Configuration.AllowComments = true;
-                csv.WriteHeader<CacheEntry>();
+                var appCompat = new AppCompatCache.AppCompatCache(p.Object.HiveFile);
 
-                csv.WriteRecords(appCompat.Cache.Entries);
+
+                if ((appCompat.Cache != null))
+                {
+                    logger.Info($"Found {appCompat.Cache.Entries.Count:N0} cache entries for {appCompat.OperatingSystem}");
+
+
+                    var outFileBase = string.Empty;
+
+                    if (p.Object.HiveFile?.Length > 0)
+                    {
+                        outFileBase = $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(p.Object.HiveFile)}_AppCompatCache.tsv";
+                    }
+                    else
+                    {
+                        outFileBase = $"{appCompat.OperatingSystem}_{Environment.MachineName}_AppCompatCache.tsv";
+                    }
+
+                    if (Directory.Exists(p.Object.SaveTo) == false)
+                    {
+                        Directory.CreateDirectory(p.Object.SaveTo);
+                    }
+
+                    var outFilename = Path.Combine(p.Object.SaveTo, outFileBase);
+
+                    logger.Info($"Saving results to '{outFilename}'");
+
+                    var sw = new StreamWriter(outFilename);
+                    sw.AutoFlush = true;
+                    var csv = new CsvWriter(sw);
+
+                    csv.Configuration.RegisterClassMap<MyClassMap>();
+                    csv.Configuration.Delimiter = "\t";
+                    //csv.Configuration.AllowComments = true;
+
+                    csv.WriteHeader<CacheEntry>();
+
+                    csv.WriteRecords(appCompat.Cache.Entries);
+
+                    sw.Close();
+                }
+                else
+                {
+                    //TODO do this
+                }
             }
-            else
+            catch (Exception ex)
             {
-                //TODO do this
+                logger.Error($"There was an error: Error message: {ex.Message}");
             }
+
+
 
 #if DEBUG
-            Console.WriteLine("Press a key to exit");
+            logger.Info("");
+            logger.Info("Press a key to exit");
             Console.ReadKey();
 #endif
         }
