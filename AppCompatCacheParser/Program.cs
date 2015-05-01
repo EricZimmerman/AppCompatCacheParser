@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using AppCompatCache;
 using CsvHelper;
@@ -16,36 +17,39 @@ namespace AppCompatCacheParser
             var logger = LogManager.GetCurrentClassLogger();
 
             var p = new FluentCommandLineParser<ApplicationArguments>();
+            
+            p.Setup(arg => arg.SaveTo)
+           .As('s', "SaveTo")
+           .WithDescription("(REQUIRED) Directory to save results")
+           .Required();
 
             p.Setup(arg => arg.HiveFile)
                 .As('h', "HiveFile")
                 .WithDescription(
-                    "Full path to hive file to process. If this option is not specified, the live Registry will be processed")
+                    "Full path to SYSTEM hive file to process. If this option is not specified, the live Registry will be used")
                 .SetDefault(string.Empty);
-            p.Setup(arg => arg.SaveTo)
-                .As('s', "SaveTo")
-                .WithDescription("Directory to save results to (REQUIRED)")
-                .Required();
-            p.Setup(arg => arg.FindEvidence)
-                .As('f', "FindEvidence")
-                .WithDescription("Be careful what you ask for")
-                .SetDefault(false);
+
+            p.Setup(arg => arg.SortTimestamps)
+                 .As('t', "SortDates")
+                 .WithDescription("If true, sorts timestamps in descending order")
+                 .SetDefault(false);
 
             var header =
-                $"AppCompatCache Parser version {Assembly.GetExecutingAssembly().GetName().Version}\r\nAuthor: Eric Zimmerman (saericzimmerman@gmail.com)\r\nhttps://github.com/EricZimmerman/AppCompatCacheParser";
+                $"AppCompatCache Parser version {Assembly.GetExecutingAssembly().GetName().Version}" +
+                $"\r\n\r\nAuthor: Eric Zimmerman (saericzimmerman@gmail.com)" +
+                $"\r\nhttps://github.com/EricZimmerman/AppCompatCacheParser";
+              
+
             p.SetupHelp("?", "help").WithHeader(header).Callback(text => logger.Info(text));
 
             var result = p.Parse(args);
 
             if (result.HasErrors)
             {
+                
                 p.HelpOption.ShowHelp(p.Options);
-                return;
-            }
 
-            if (p.Object.FindEvidence)
-            {
-                logger.Info("\r\nThis is not the forensics program you are looking for...");
+                logger.Info("Either the short name or long name can be used for the command line switches. For example, either -s or --SaveTo");
                 return;
             }
 
@@ -91,7 +95,7 @@ namespace AppCompatCacheParser
 
                     var outFilename = Path.Combine(p.Object.SaveTo, outFileBase);
 
-                    logger.Info($"Saving results to '{outFilename}'");
+                    logger.Info($"\r\nSaving results to '{outFilename}'");
 
                     var sw = new StreamWriter(outFilename);
                     sw.AutoFlush = true;
@@ -103,7 +107,15 @@ namespace AppCompatCacheParser
 
                     csv.WriteHeader<CacheEntry>();
 
-                    csv.WriteRecords(appCompat.Cache.Entries);
+                    if (p.Object.SortTimestamps)
+                    {
+                        csv.WriteRecords(appCompat.Cache.Entries.OrderByDescending(t => t.LastModifiedTime));
+                    }
+                    else
+                    {
+                        csv.WriteRecords(appCompat.Cache.Entries);
+                    }
+                    
 
                     sw.Close();
                 }
@@ -126,6 +138,7 @@ namespace AppCompatCacheParser
     {
         public string HiveFile { get; set; }
         public bool FindEvidence { get; set; }
+        public bool SortTimestamps { get; set; }
         public string SaveTo { get; set; }
     }
 
@@ -133,8 +146,9 @@ namespace AppCompatCacheParser
     {
         public CacheOutputMap()
         {
+            Map(m => m.CacheEntryPosition);
             Map(m => m.Path);
-            Map(m => m.LastModifiedTime);
+            Map(m => m.LastModifiedTime).TypeConverterOption("u");
         }
     }
 }

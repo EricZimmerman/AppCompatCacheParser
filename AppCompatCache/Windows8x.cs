@@ -15,10 +15,12 @@ namespace AppCompatCache
 
             var signature = "00ts";
 
-            if (os == AppCompatCache.OperatingSystemVersion.Windows81)
+            if (os == AppCompatCache.OperatingSystemVersion.Windows81Windows2012)
             {
                 signature = "10ts";
             }
+
+            var position = 0;
 
             while (index <= rawBytes.Length)
             {
@@ -68,7 +70,10 @@ namespace AppCompatCache
                     ce.Data = rawBytes.Skip(index).Take(ce.DataSize).ToArray();
                     index += ce.DataSize;
 
+                    ce.CacheEntryPosition = position;
+
                     Entries.Add(ce);
+                    position += 1;
                 }
                 catch (Exception ex)
                 {

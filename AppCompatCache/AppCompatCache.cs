@@ -13,7 +13,7 @@ namespace AppCompatCache
             Windows7X86,
             Windows7X64,
             Windows80,
-            Windows81,
+            Windows81Windows2012,
             Windows10,
             Unknown
         }
@@ -82,7 +82,7 @@ namespace AppCompatCache
             }
             else if (signature == "10ts")
             {
-                OperatingSystem = OperatingSystemVersion.Windows81;
+                OperatingSystem = OperatingSystemVersion.Windows81Windows2012;
                 appCache = new Windows8x(rawBytes, OperatingSystem);
             }
             else

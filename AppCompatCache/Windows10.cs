@@ -13,6 +13,7 @@ namespace AppCompatCache
 
             var index = 48;
 
+            var position = 0;
 
             while (index <= rawBytes.Length)
             {
@@ -51,7 +52,10 @@ namespace AppCompatCache
                     ce.Data = rawBytes.Skip(index).Take(ce.DataSize).ToArray();
                     index += ce.DataSize;
 
+                    ce.CacheEntryPosition = position;
+                    
                     Entries.Add(ce);
+                    position += 1;
                 }
                 catch (Exception ex)
                 {

@@ -4,6 +4,7 @@ namespace AppCompatCache
 {
     public class CacheEntry
     {
+        public int CacheEntryPosition { get; set; }
         public int CacheEntrySize { get; set; }
         public byte[] Data { get; set; }
         public int DataSize { get; set; }
@@ -14,7 +15,7 @@ namespace AppCompatCache
 
         public override string ToString()
         {
-            return $"(Path size: {PathSize}), Path: {Path}, Last modified:{LastModifiedTime}";
+            return $"#{CacheEntryPosition} (Path size: {PathSize}), Path: {Path}, Last modified:{LastModifiedTime}";
         }
     }
 }

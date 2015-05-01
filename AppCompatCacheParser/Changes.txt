@@ -1,0 +1,8 @@
+﻿0.0.5.1
+
+NEW: Added CacheEntryPosition to allow for sorting in the order cache entries were found in the Registry
+NEW: Changed format of last modified timestamp to allow for sorting. Format is yyyy-MM-dd HH:mm:ssZ
+NEW: Added -t switch that sorts the timestamps in descending order (most recent first)
+NEW: Added a sweet icon
+
+CHANGE: Removed -f switch (it was fun while it lasted)

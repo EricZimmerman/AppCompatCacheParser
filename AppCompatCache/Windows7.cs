@@ -17,6 +17,8 @@ namespace AppCompatCache
 
             index = 128;
 
+            var position = 0;
+
             if ((is32Bit))
             {
                 while (index <= rawBytes.Length)
@@ -53,7 +55,9 @@ namespace AppCompatCache
 
                         ce.Path = Encoding.Unicode.GetString(rawBytes, pathOffset, ce.PathSize);
 
+                        ce.CacheEntryPosition = position;
                         Entries.Add(ce);
+                        position += 1;
 
                         if (Entries.Count == cacheItems)
                         {
@@ -107,7 +111,9 @@ namespace AppCompatCache
 
                         ce.Path = Encoding.Unicode.GetString(rawBytes, (int) pathOffset, ce.PathSize);
 
+                        ce.CacheEntryPosition = position;
                         Entries.Add(ce);
+                        position += 1;
 
                         if (Entries.Count == cacheItems)
                         {
