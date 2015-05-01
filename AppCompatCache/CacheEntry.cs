@@ -4,12 +4,12 @@ namespace AppCompatCache
 {
     public class CacheEntry
     {
-        public int CacheEntrySize;
-        public byte[] Data;
-        public int DataSize;
-        public DateTimeOffset LastModifiedTime;
-        public string Path;
-        public int PathSize;
-        public string Signature;
+        public int CacheEntrySize { get; set; }
+        public byte[] Data { get; set; }
+        public int DataSize { get; set; }
+        public DateTimeOffset LastModifiedTime { get; set; }
+        public string Path { get; set; }
+        public int PathSize { get; set; }
+        public string Signature { get; set; }
     }
 }

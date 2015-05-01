@@ -7,6 +7,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using AppCompatCache;
+using CsvHelper;
+using CsvHelper.Configuration;
 using Fclp;
 using Microsoft.Win32;
 
@@ -21,7 +23,7 @@ namespace AppCompatCacheParser
 
             //tsv
             //default is to dump live system to current working dir
-            //live filename == WinXX_MachineName_AppCompatCache.tsv
+            //live filename == WinXX_MachineWName_AppCompatCache.tsv
             //hive filename == WinXX_HiveName_AppCompatCache.tsv
 
             //TODO Nlog color console
@@ -75,13 +77,20 @@ namespace AppCompatCacheParser
 
             if ((appCompat.Cache != null))
             {
-                Console.WriteLine($"Found {appCompat.Cache.Entries.Count:N0} cache entries!");
-                
-                foreach (var cacheEntry in appCompat.Cache.Entries)
-                {
-                 //do stuff here
-                }
+                Console.WriteLine($"Found {appCompat.Cache.Entries.Count:N0} cache entries for {appCompat.OperatingSystem}");
+                Console.WriteLine("Saving...");
+                var tw = new StreamWriter(outFilename);
+                var csv = new CsvWriter(tw);
+                csv.Configuration.RegisterClassMap<MyClassMap>();
+                csv.Configuration.Delimiter = "\t";
+                csv.Configuration.AllowComments = true;
+                csv.WriteHeader<CacheEntry>();
 
+                csv.WriteRecords(appCompat.Cache.Entries);
+            }
+            else
+            {
+                //TODO do this
             }
 
 #if DEBUG
@@ -97,4 +106,14 @@ namespace AppCompatCacheParser
         public bool FindEvidence { get; set; }
         public string SaveTo { get; set; }
     }
+
+    public sealed class MyClassMap : CsvClassMap<CacheEntry>
+    {
+        public MyClassMap()
+        {
+            Map(m => m.Path);
+            Map(m => m.LastModifiedTime);
+        }
+    }
+    
 }
