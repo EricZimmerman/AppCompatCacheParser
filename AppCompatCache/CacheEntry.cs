@@ -17,6 +17,4 @@ namespace AppCompatCache
             return $"(Path size: {PathSize}), Path: {Path}, Last modified:{LastModifiedTime}";
         }
     }
-
-    
 }

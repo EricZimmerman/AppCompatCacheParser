@@ -4,6 +4,6 @@ namespace AppCompatCache
 {
     public interface IAppCompatCache
     {
-        List<CacheEntry> Entries { get;  }
+        List<CacheEntry> Entries { get; }
     }
 }

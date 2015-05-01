@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using AppCompatCache;
 using NFluent;
 using NUnit.Framework;
 
@@ -7,12 +8,6 @@ namespace AppCompatCacheTest
     [TestFixture]
     public class AppCompatCacheTest
     {
-        public byte[] Win7X86;
-        public byte[] Win7X64;
-        public byte[] Win80;
-        public byte[] Win81;
-        public byte[] Win10;
-
         [SetUp]
         public void PreTestSetup()
         {
@@ -23,40 +18,45 @@ namespace AppCompatCacheTest
             Win10 = File.ReadAllBytes(@"..\..\TestFiles\Win10.bin");
         }
 
+        public byte[] Win7X86;
+        public byte[] Win7X64;
+        public byte[] Win80;
+        public byte[] Win81;
+        public byte[] Win10;
+
         [Test]
-        public void Win7x86ShouldFindEntries()
+        public void Win10ShouldFindEntries()
         {
-            var a = new AppCompatCache.Windows7(Win7X86,true);
-            Check.That(a.Entries.Count).Equals(91);
+            var a = new Windows10(Win10);
+            Check.That(a.Entries.Count).Equals(350);
         }
 
         [Test]
         public void Win7x64ShouldFindEntries()
         {
-            var a = new AppCompatCache.Windows7(Win7X64, false);
+            var a = new Windows7(Win7X64, false);
             Check.That(a.Entries.Count).Equals(304);
+        }
+
+        [Test]
+        public void Win7x86ShouldFindEntries()
+        {
+            var a = new Windows7(Win7X86, true);
+            Check.That(a.Entries.Count).Equals(91);
         }
 
         [Test]
         public void Win80ShouldFindEntries()
         {
-            var a = new AppCompatCache.Windows8x(Win80,AppCompatCache.AppCompatCache.OperatingSystemVersion.Windows80);
+            var a = new Windows8x(Win80, AppCompatCache.AppCompatCache.OperatingSystemVersion.Windows80);
             Check.That(a.Entries.Count).Equals(58);
         }
 
         [Test]
         public void Win81ShouldFindEntries()
         {
-            var a = new AppCompatCache.Windows8x(Win81,  AppCompatCache.AppCompatCache.OperatingSystemVersion.Windows81);
+            var a = new Windows8x(Win81, AppCompatCache.AppCompatCache.OperatingSystemVersion.Windows81);
             Check.That(a.Entries.Count).Equals(1024);
         }
-
-        [Test]
-        public void Win10ShouldFindEntries()
-        {
-            var a = new AppCompatCache.Windows10(Win10);
-            Check.That(a.Entries.Count).Equals(350);
-        }
-
     }
 }

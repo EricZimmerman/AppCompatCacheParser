@@ -19,7 +19,6 @@ namespace AppCompatCache
             {
                 signature = "10ts";
             }
-            
 
             while (index <= rawBytes.Length)
             {
@@ -58,7 +57,8 @@ namespace AppCompatCache
                     // skip 2 unknown
                     index += 2;
 
-                    ce.LastModifiedTime = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
+                    ce.LastModifiedTime =
+                        DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
 
                     index += 8;
 
