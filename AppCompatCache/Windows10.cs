@@ -42,7 +42,7 @@ namespace AppCompatCache
                     ce.Path = Encoding.Unicode.GetString(rawBytes, index, ce.PathSize);
                     index += ce.PathSize;
 
-                    ce.LastModifiedTime =
+                    ce.LastModifiedTimeUTC =
                         DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
                     index += 8;
 

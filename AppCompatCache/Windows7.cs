@@ -37,7 +37,7 @@ namespace AppCompatCache
                         var pathOffset = BitConverter.ToInt32(rawBytes, index);
                         index += 4;
 
-                        ce.LastModifiedTime =
+                        ce.LastModifiedTimeUTC =
                             DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
                         index += 8;
 
@@ -93,7 +93,7 @@ namespace AppCompatCache
                         var pathOffset = BitConverter.ToInt64(rawBytes, index);
                         index += 8;
 
-                        ce.LastModifiedTime =
+                        ce.LastModifiedTimeUTC =
                             DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
                         index += 8;
 

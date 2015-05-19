@@ -50,7 +50,7 @@ namespace AppCompatCache
 
                 var currentCtlSet = int.Parse(subKey.Values.Single(c => c.ValueName == "Current").ValueData);
 
-                subKey = hive.GetKey("ControlSet00" + currentCtlSet + @"\Control\Session Manager\AppCompatCache");
+                subKey = hive.GetKey($@"ControlSet00{currentCtlSet}\Control\Session Manager\AppCompatCache");
 
                 var val = subKey?.Values.SingleOrDefault(c => c.ValueName == "AppCompatCache");
 
@@ -142,7 +142,7 @@ namespace AppCompatCache
 
                 var currentCtlSet = int.Parse(subKey.Values.Single(c => c.ValueName == "Current").ValueData);
 
-                subKey = hive.GetKey("ControlSet00" + currentCtlSet + @"\Control\Session Manager\Environment");
+                subKey = hive.GetKey($"ControlSet00{currentCtlSet}\\Control\\Session Manager\\Environment");
 
                 var val = subKey?.Values.SingleOrDefault(c => c.ValueName == "PROCESSOR_ARCHITECTURE");
 

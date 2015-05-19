@@ -109,7 +109,7 @@ namespace AppCompatCacheParser
 
                     if (p.Object.SortTimestamps)
                     {
-                        csv.WriteRecords(appCompat.Cache.Entries.OrderByDescending(t => t.LastModifiedTime));
+                        csv.WriteRecords(appCompat.Cache.Entries.OrderByDescending(t => t.LastModifiedTimeUTC));
                     }
                     else
                     {
@@ -148,7 +148,7 @@ namespace AppCompatCacheParser
         {
             Map(m => m.CacheEntryPosition);
             Map(m => m.Path);
-            Map(m => m.LastModifiedTime).TypeConverterOption("u");
+            Map(m => m.LastModifiedTimeUTC).TypeConverterOption("yyyy-MM-dd HH:mm:ss"); //2008-04-10 13:30:00Z  
         }
     }
 }

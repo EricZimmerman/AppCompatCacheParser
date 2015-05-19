@@ -59,7 +59,7 @@ namespace AppCompatCache
                     // skip 2 unknown
                     index += 2;
 
-                    ce.LastModifiedTime =
+                    ce.LastModifiedTimeUTC =
                         DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
 
                     index += 8;
