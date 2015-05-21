@@ -10,10 +10,10 @@ namespace AppCompatCache
     {
         public enum OperatingSystemVersion
         {
-            Windows7X86,
-            Windows7X64,
-            Windows80,
-            Windows81Windows2012,
+            Windows7x86,
+            Windows7x64_Windows2008R2,
+            Windows80_Windows2012,
+            Windows81_Windows2012R2,
             Windows10,
             Unknown
         }
@@ -77,12 +77,12 @@ namespace AppCompatCache
 
             if ((signature == "00ts"))
             {
-                OperatingSystem = OperatingSystemVersion.Windows80;
+                OperatingSystem = OperatingSystemVersion.Windows80_Windows2012;
                 appCache = new Windows8x(rawBytes, OperatingSystem);
             }
             else if (signature == "10ts")
             {
-                OperatingSystem = OperatingSystemVersion.Windows81Windows2012;
+                OperatingSystem = OperatingSystemVersion.Windows81_Windows2012R2;
                 appCache = new Windows8x(rawBytes, OperatingSystem);
             }
             else
@@ -103,11 +103,11 @@ namespace AppCompatCache
 
                         if (is32)
                         {
-                            OperatingSystem = OperatingSystemVersion.Windows7X86;
+                            OperatingSystem = OperatingSystemVersion.Windows7x86;
                         }
                         else
                         {
-                            OperatingSystem = OperatingSystemVersion.Windows7X64;
+                            OperatingSystem = OperatingSystemVersion.Windows7x64_Windows2008R2;
                         }
 
                         appCache = new Windows7(rawBytes, is32);

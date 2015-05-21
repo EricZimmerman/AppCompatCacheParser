@@ -15,7 +15,7 @@ namespace AppCompatCache
 
             var signature = "00ts";
 
-            if (os == AppCompatCache.OperatingSystemVersion.Windows81Windows2012)
+            if (os == AppCompatCache.OperatingSystemVersion.Windows81_Windows2012R2)
             {
                 signature = "10ts";
             }
