@@ -18,6 +18,9 @@ namespace AppCompatCache
             Unknown
         }
 
+        //https://github.com/libyal/winreg-kb/wiki/Application-Compatibility-Cache-key
+        //https://dl.mandiant.com/EE/library/Whitepaper_ShimCacheParser.pdf
+
         public AppCompatCache(string filename)
         {
             byte[] rawBytes = null;
