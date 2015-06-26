@@ -32,10 +32,6 @@ namespace AppCompatCache
                         var ce = new CacheEntry();
 
                         ce.PathSize = 528;
-                        // index += 2;
-
-                        //                        var maxPathSize = BitConverter.ToUInt16(rawBytes, index);
-                        //                        index += 2;
 
                         ce.Path = Encoding.Unicode.GetString(rawBytes, index, ce.PathSize).Replace('\0', ' ').Trim();
                         index += 528;
@@ -49,7 +45,7 @@ namespace AppCompatCache
 
                         //                        ce.LastModifiedTimeUTC =
                         //                            DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
-                        //this is last update time
+                        //this is last update time, its not reported yet
                         index += 8;
 
                         if (ce.LastModifiedTimeUTC.Year == 1601)
