@@ -10,6 +10,7 @@ namespace AppCompatCache
     {
         public enum OperatingSystemVersion
         {
+            WindowsXP,
             Windows7x86,
             Windows7x64_Windows2008R2,
             Windows80_Windows2012,
@@ -34,9 +35,14 @@ namespace AppCompatCache
 
                 if (subKey == null)
                 {
-                    Console.WriteLine(
-                        @"'CurrentControlSet\Control\Session Manager\AppCompatCache' key not found! Exiting");
-                    return;
+                    subKey = keyCurrUser.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatibility");
+
+                    if (subKey == null)
+                    {
+                        Console.WriteLine(
+                            @"'CurrentControlSet\Control\Session Manager\AppCompatCache' key not found! Exiting");
+                        return;
+                    }
                 }
 
                 rawBytes = (byte[]) subKey.GetValue("AppCompatCache", null);
@@ -54,6 +60,11 @@ namespace AppCompatCache
                 var currentCtlSet = int.Parse(subKey.Values.Single(c => c.ValueName == "Current").ValueData);
 
                 subKey = hive.GetKey($@"ControlSet00{currentCtlSet}\Control\Session Manager\AppCompatCache");
+
+                if (subKey == null)
+                {
+                    subKey = hive.GetKey($@"ControlSet00{currentCtlSet}\Control\Session Manager\AppCompatibility");
+                }
 
                 var val = subKey?.Values.SingleOrDefault(c => c.ValueName == "AppCompatCache");
 
@@ -78,7 +89,14 @@ namespace AppCompatCache
 
             signature = Encoding.ASCII.GetString(rawBytes, 128, 4);
 
-            if ((signature == "00ts"))
+            if (signature == "\u0018\0\0\0")
+            {
+                var is32 = Is32Bit(filename);
+
+                OperatingSystem = OperatingSystemVersion.WindowsXP;
+                appCache = new WindowsXP(rawBytes, is32);
+            }
+            else if ((signature == "00ts"))
             {
                 OperatingSystem = OperatingSystemVersion.Windows80_Windows2012;
                 appCache = new Windows8x(rawBytes, OperatingSystem);
