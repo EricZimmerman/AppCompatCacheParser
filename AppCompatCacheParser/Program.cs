@@ -43,6 +43,11 @@ namespace AppCompatCacheParser
             p.SetupHelp("?", "help").WithHeader(header).Callback(text => logger.Info(text));
 
             var result = p.Parse(args);
+            
+            if (result.HelpCalled)
+            {
+                return;
+            }
 
             if (result.HasErrors)
             {
