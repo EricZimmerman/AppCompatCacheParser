@@ -89,7 +89,7 @@ namespace AppCompatCache
 
             signature = Encoding.ASCII.GetString(rawBytes, 128, 4);
 
-            if (signature == "\u0018\0\0\0")
+            if (signature == "\u0018\0\0\0" || signature== "Y\0\0\0")
             {
                 var is32 = Is32Bit(filename);
 
