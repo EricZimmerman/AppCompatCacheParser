@@ -12,9 +12,28 @@ namespace AppCompatCacheParser
 {
     internal class Program
     {
+
+        private static bool CheckForDotnet46()
+        {
+            using (
+                var ndpKey =
+                    Microsoft.Win32.RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, Microsoft.Win32.RegistryView.Registry32)
+                        .OpenSubKey("SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full\\"))
+            {
+                var releaseKey = Convert.ToInt32(ndpKey.GetValue("Release"));
+
+                return (releaseKey >= 393295);
+            }
+        }
         private static void Main(string[] args)
         {
             var logger = LogManager.GetCurrentClassLogger();
+
+            if (!CheckForDotnet46())
+            {
+                logger.Warn(".net 4.6 not detected. Please install .net 4.6 and try again.");
+                return;
+            }
 
             var p = new FluentCommandLineParser<ApplicationArguments>();
             
