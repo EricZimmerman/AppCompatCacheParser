@@ -62,18 +62,18 @@ namespace AppCompatCacheParser
             var p = new FluentCommandLineParser<ApplicationArguments>();
 
             p.Setup(arg => arg.SaveTo)
-                .As('s', "SaveTo")
+                .As('s')
                 .WithDescription("(REQUIRED) Directory to save results")
                 .Required();
 
             p.Setup(arg => arg.HiveFile)
-                .As('h', "HiveFile")
+                .As('h')
                 .WithDescription(
                     "Full path to SYSTEM hive file to process. If this option is not specified, the live Registry will be used")
                 .SetDefault(string.Empty);
 
             p.Setup(arg => arg.SortTimestamps)
-                .As('t', "SortDates")
+                .As('t')
                 .WithDescription("If true, sorts timestamps in descending order")
                 .SetDefault(false);
 
@@ -97,7 +97,7 @@ namespace AppCompatCacheParser
                 p.HelpOption.ShowHelp(p.Options);
 
                 logger.Info(
-                    "Either the short name or long name can be used for the command line switches. For example, either -s or --SaveTo");
+                    @"Example: AppCompatCacheParser.exe -s c:\temp -t");
                 return;
             }
 
