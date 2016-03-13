@@ -6,27 +6,51 @@ using AppCompatCache;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Fclp;
+using Microsoft.Win32;
 using NLog;
+using NLog.Config;
+using NLog.Targets;
 
 namespace AppCompatCacheParser
 {
     internal class Program
     {
+        private static void SetupNLog()
+        {
+            var config = new LoggingConfiguration();
+            var loglevel = LogLevel.Info;
+
+            var layout = @"${message}";
+
+            var consoleTarget = new ColoredConsoleTarget();
+
+            config.AddTarget("console", consoleTarget);
+
+            consoleTarget.Layout = layout;
+
+            var rule1 = new LoggingRule("*", loglevel, consoleTarget);
+            config.LoggingRules.Add(rule1);
+
+            LogManager.Configuration = config;
+        }
 
         private static bool CheckForDotnet46()
         {
             using (
                 var ndpKey =
-                    Microsoft.Win32.RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, Microsoft.Win32.RegistryView.Registry32)
+                    RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32)
                         .OpenSubKey("SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full\\"))
             {
                 var releaseKey = Convert.ToInt32(ndpKey.GetValue("Release"));
 
-                return (releaseKey >= 393295);
+                return releaseKey >= 393295;
             }
         }
+
         private static void Main(string[] args)
         {
+            SetupNLog();
+
             var logger = LogManager.GetCurrentClassLogger();
 
             if (!CheckForDotnet46())
@@ -36,11 +60,11 @@ namespace AppCompatCacheParser
             }
 
             var p = new FluentCommandLineParser<ApplicationArguments>();
-            
+
             p.Setup(arg => arg.SaveTo)
-           .As('s', "SaveTo")
-           .WithDescription("(REQUIRED) Directory to save results")
-           .Required();
+                .As('s', "SaveTo")
+                .WithDescription("(REQUIRED) Directory to save results")
+                .Required();
 
             p.Setup(arg => arg.HiveFile)
                 .As('h', "HiveFile")
@@ -49,20 +73,20 @@ namespace AppCompatCacheParser
                 .SetDefault(string.Empty);
 
             p.Setup(arg => arg.SortTimestamps)
-                 .As('t', "SortDates")
-                 .WithDescription("If true, sorts timestamps in descending order")
-                 .SetDefault(false);
+                .As('t', "SortDates")
+                .WithDescription("If true, sorts timestamps in descending order")
+                .SetDefault(false);
 
             var header =
                 $"AppCompatCache Parser version {Assembly.GetExecutingAssembly().GetName().Version}" +
                 $"\r\n\r\nAuthor: Eric Zimmerman (saericzimmerman@gmail.com)" +
                 $"\r\nhttps://github.com/EricZimmerman/AppCompatCacheParser";
-              
+
 
             p.SetupHelp("?", "help").WithHeader(header).Callback(text => logger.Info(text));
 
             var result = p.Parse(args);
-            
+
             if (result.HelpCalled)
             {
                 return;
@@ -70,10 +94,10 @@ namespace AppCompatCacheParser
 
             if (result.HasErrors)
             {
-                
                 p.HelpOption.ShowHelp(p.Options);
 
-                logger.Info("Either the short name or long name can be used for the command line switches. For example, either -s or --SaveTo");
+                logger.Info(
+                    "Either the short name or long name can be used for the command line switches. For example, either -s or --SaveTo");
                 return;
             }
 
@@ -95,7 +119,7 @@ namespace AppCompatCacheParser
             {
                 var appCompat = new AppCompatCache.AppCompatCache(p.Object.HiveFile);
 
-                if ((appCompat.Cache != null))
+                if (appCompat.Cache != null)
                 {
                     logger.Info(
                         $"Found {appCompat.Cache.Entries.Count:N0} cache entries for {appCompat.OperatingSystem}");
@@ -139,7 +163,7 @@ namespace AppCompatCacheParser
                     {
                         csv.WriteRecords(appCompat.Cache.Entries);
                     }
-                    
+
 
                     sw.Close();
                 }
@@ -172,7 +196,7 @@ namespace AppCompatCacheParser
         {
             Map(m => m.CacheEntryPosition);
             Map(m => m.Path);
-            Map(m => m.LastModifiedTimeUTC).TypeConverterOption("MM-dd-yyyy HH:mm:ss"); 
+            Map(m => m.LastModifiedTimeUTC).TypeConverterOption("MM-dd-yyyy HH:mm:ss");
         }
     }
 }

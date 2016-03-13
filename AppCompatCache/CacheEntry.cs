@@ -15,7 +15,8 @@ namespace AppCompatCache
 
         public override string ToString()
         {
-            return $"#{CacheEntryPosition} (Path size: {PathSize}), Path: {Path}, Last modified (UTC):{LastModifiedTimeUTC}";
+            return
+                $"#{CacheEntryPosition} (Path size: {PathSize}), Path: {Path}, Last modified (UTC):{LastModifiedTimeUTC}";
         }
     }
 }

@@ -53,7 +53,7 @@ namespace AppCompatCache
                     index += ce.DataSize;
 
                     ce.CacheEntryPosition = position;
-                    
+
                     Entries.Add(ce);
                     position += 1;
                 }

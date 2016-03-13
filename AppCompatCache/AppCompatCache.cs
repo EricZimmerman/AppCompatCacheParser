@@ -19,71 +19,9 @@ namespace AppCompatCache
             Unknown
         }
 
-        //https://github.com/libyal/winreg-kb/wiki/Application-Compatibility-Cache-key
-        //https://dl.mandiant.com/EE/library/Whitepaper_ShimCacheParser.pdf
-
-        private void Init(byte[] rawBytes, bool is32)
-        {
-            IAppCompatCache appCache = null;
-            OperatingSystem = OperatingSystemVersion.Unknown;
-
-            string signature;
-
-            //TODO check minimum length of rawBytes and throw exception if not enough data
-
-            signature = Encoding.ASCII.GetString(rawBytes, 128, 4);
-
-            if (signature == "\u0018\0\0\0" || signature == "Y\0\0\0")
-            {
-
-                OperatingSystem = OperatingSystemVersion.WindowsXP;
-                appCache = new WindowsXP(rawBytes, is32);
-            }
-            else if ((signature == "00ts"))
-            {
-                OperatingSystem = OperatingSystemVersion.Windows80_Windows2012;
-                appCache = new Windows8x(rawBytes, OperatingSystem);
-            }
-            else if (signature == "10ts")
-            {
-                OperatingSystem = OperatingSystemVersion.Windows81_Windows2012R2;
-                appCache = new Windows8x(rawBytes, OperatingSystem);
-            }
-            else
-            {
-                //is it windows 10?
-                signature = Encoding.ASCII.GetString(rawBytes, 48, 4);
-                if ((signature == "10ts"))
-                {
-                    OperatingSystem = OperatingSystemVersion.Windows10;
-                    appCache = new Windows10(rawBytes);
-                }
-                else
-                {
-                    //win7
-                    if (rawBytes[0] == 0xee & rawBytes[1] == 0xf & rawBytes[2] == 0xdc & rawBytes[3] == 0xba)
-                    {
-
-                        if (is32)
-                        {
-                            OperatingSystem = OperatingSystemVersion.Windows7x86;
-                        }
-                        else
-                        {
-                            OperatingSystem = OperatingSystemVersion.Windows7x64_Windows2008R2;
-                        }
-
-                        appCache = new Windows7(rawBytes, is32);
-                    }
-                }
-            }
-
-            Cache = appCache;
-        }
-
         public AppCompatCache(byte[] rawBytes)
         {
-           Init(rawBytes,false);
+            Init(rawBytes, false);
         }
 
         public AppCompatCache(string filename)
@@ -152,9 +90,69 @@ namespace AppCompatCache
         public IAppCompatCache Cache { get; private set; }
         public OperatingSystemVersion OperatingSystem { get; private set; }
 
+        //https://github.com/libyal/winreg-kb/wiki/Application-Compatibility-Cache-key
+        //https://dl.mandiant.com/EE/library/Whitepaper_ShimCacheParser.pdf
+
+        private void Init(byte[] rawBytes, bool is32)
+        {
+            IAppCompatCache appCache = null;
+            OperatingSystem = OperatingSystemVersion.Unknown;
+
+            string signature;
+
+            //TODO check minimum length of rawBytes and throw exception if not enough data
+
+            signature = Encoding.ASCII.GetString(rawBytes, 128, 4);
+
+            if (signature == "\u0018\0\0\0" || signature == "Y\0\0\0")
+            {
+                OperatingSystem = OperatingSystemVersion.WindowsXP;
+                appCache = new WindowsXP(rawBytes, is32);
+            }
+            else if (signature == "00ts")
+            {
+                OperatingSystem = OperatingSystemVersion.Windows80_Windows2012;
+                appCache = new Windows8x(rawBytes, OperatingSystem);
+            }
+            else if (signature == "10ts")
+            {
+                OperatingSystem = OperatingSystemVersion.Windows81_Windows2012R2;
+                appCache = new Windows8x(rawBytes, OperatingSystem);
+            }
+            else
+            {
+                //is it windows 10?
+                signature = Encoding.ASCII.GetString(rawBytes, 48, 4);
+                if (signature == "10ts")
+                {
+                    OperatingSystem = OperatingSystemVersion.Windows10;
+                    appCache = new Windows10(rawBytes);
+                }
+                else
+                {
+                    //win7
+                    if (rawBytes[0] == 0xee & rawBytes[1] == 0xf & rawBytes[2] == 0xdc & rawBytes[3] == 0xba)
+                    {
+                        if (is32)
+                        {
+                            OperatingSystem = OperatingSystemVersion.Windows7x86;
+                        }
+                        else
+                        {
+                            OperatingSystem = OperatingSystemVersion.Windows7x64_Windows2008R2;
+                        }
+
+                        appCache = new Windows7(rawBytes, is32);
+                    }
+                }
+            }
+
+            Cache = appCache;
+        }
+
         public static bool Is32Bit(string fileName)
         {
-            if ((fileName.Length == 0))
+            if (fileName.Length == 0)
             {
                 var keyCurrUser = Microsoft.Win32.Registry.LocalMachine;
                 var subKey = keyCurrUser.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\Environment");

@@ -87,9 +87,6 @@
     <Content Include="Query256.ico" />
     <None Include="App.config" />
     <Content Include="Changes.txt" />
-    <Content Include="NLog.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <None Include="NLog.xsd">
       <SubType>Designer</SubType>
     </None>
@@ -98,12 +95,6 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AppCompatCache\AppCompatCache.csproj">
-      <Project>{ef07492c-2992-4bfd-b93a-78c6cc8fde7a}</Project>
-      <Name>AppCompatCache</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">
@@ -116,6 +107,12 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AppCompatCache\AppCompatCache.csproj">
+      <Project>{ef07492c-2992-4bfd-b93a-78c6cc8fde7a}</Project>
+      <Name>AppCompatCache</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

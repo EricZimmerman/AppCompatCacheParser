@@ -19,7 +19,7 @@ namespace AppCompatCache
 
             var position = 0;
 
-            if ((is32Bit))
+            if (is32Bit)
             {
                 while (index <= rawBytes.Length)
                 {

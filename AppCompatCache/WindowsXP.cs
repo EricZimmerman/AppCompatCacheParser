@@ -23,7 +23,7 @@ namespace AppCompatCache
 
             var position = 0;
 
-            if ((is32Bit))
+            if (is32Bit)
             {
                 while (index <= rawBytes.Length)
                 {
@@ -72,8 +72,8 @@ namespace AppCompatCache
             }
             else
             {
-
-                throw new Exception("64 bit XP support not available. send the hive to saericzimmerman@gmail.com so support can be added");
+                throw new Exception(
+                    "64 bit XP support not available. send the hive to saericzimmerman@gmail.com so support can be added");
                 while (index <= rawBytes.Length)
                 {
                     try
@@ -118,7 +118,6 @@ namespace AppCompatCache
                         position += 1;
 
 
-
                         if (Entries.Count == cacheItems)
                         {
                             break;
@@ -132,8 +131,6 @@ namespace AppCompatCache
                         break;
                     }
                 }
-
-               
             }
         }
 
