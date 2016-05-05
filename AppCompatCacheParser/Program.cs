@@ -80,10 +80,10 @@ namespace AppCompatCacheParser
                 .SetDefault(false);
 
             _fluentCommandLineParser.Setup(arg => arg.DateTimeFormat)
-                       .As("dt")
-                       .WithDescription(
-                           "The custom date/time format to use when displaying time stamps. Default is: yyyy-MM-dd HH:mm:ss K")
-                       .SetDefault("yyyy-MM-dd HH:mm:ss K");
+                .As("dt")
+                .WithDescription(
+                    "The custom date/time format to use when displaying time stamps. Default is: yyyy-MM-dd HH:mm:ss K")
+                .SetDefault("yyyy-MM-dd HH:mm:ss K");
 
             var header =
                 $"AppCompatCache Parser version {Assembly.GetExecutingAssembly().GetName().Version}" +
