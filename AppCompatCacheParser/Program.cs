@@ -15,6 +15,8 @@ namespace AppCompatCacheParser
 {
     internal class Program
     {
+        private static FluentCommandLineParser<ApplicationArguments> _fluentCommandLineParser;
+
         private static void SetupNLog()
         {
             var config = new LoggingConfiguration();
@@ -59,23 +61,29 @@ namespace AppCompatCacheParser
                 return;
             }
 
-            var p = new FluentCommandLineParser<ApplicationArguments>();
+            _fluentCommandLineParser = new FluentCommandLineParser<ApplicationArguments>();
 
-            p.Setup(arg => arg.SaveTo)
+            _fluentCommandLineParser.Setup(arg => arg.SaveTo)
                 .As('s')
                 .WithDescription("(REQUIRED) Directory to save results")
                 .Required();
 
-            p.Setup(arg => arg.HiveFile)
+            _fluentCommandLineParser.Setup(arg => arg.HiveFile)
                 .As('h')
                 .WithDescription(
                     "Full path to SYSTEM hive file to process. If this option is not specified, the live Registry will be used")
                 .SetDefault(string.Empty);
 
-            p.Setup(arg => arg.SortTimestamps)
+            _fluentCommandLineParser.Setup(arg => arg.SortTimestamps)
                 .As('t')
                 .WithDescription("If true, sorts timestamps in descending order")
                 .SetDefault(false);
+
+            _fluentCommandLineParser.Setup(arg => arg.DateTimeFormat)
+                       .As("dt")
+                       .WithDescription(
+                           "The custom date/time format to use when displaying time stamps. Default is: yyyy-MM-dd HH:mm:ss K")
+                       .SetDefault("yyyy-MM-dd HH:mm:ss K");
 
             var header =
                 $"AppCompatCache Parser version {Assembly.GetExecutingAssembly().GetName().Version}" +
@@ -83,9 +91,9 @@ namespace AppCompatCacheParser
                 $"\r\nhttps://github.com/EricZimmerman/AppCompatCacheParser";
 
 
-            p.SetupHelp("?", "help").WithHeader(header).Callback(text => logger.Info(text));
+            _fluentCommandLineParser.SetupHelp("?", "help").WithHeader(header).Callback(text => logger.Info(text));
 
-            var result = p.Parse(args);
+            var result = _fluentCommandLineParser.Parse(args);
 
             if (result.HelpCalled)
             {
@@ -94,7 +102,7 @@ namespace AppCompatCacheParser
 
             if (result.HasErrors)
             {
-                p.HelpOption.ShowHelp(p.Options);
+                _fluentCommandLineParser.HelpOption.ShowHelp(_fluentCommandLineParser.Options);
 
                 logger.Info(
                     @"Example: AppCompatCacheParser.exe -s c:\temp -t");
@@ -103,9 +111,9 @@ namespace AppCompatCacheParser
 
             var hiveToProcess = "Live Registry";
 
-            if (p.Object.HiveFile?.Length > 0)
+            if (_fluentCommandLineParser.Object.HiveFile?.Length > 0)
             {
-                hiveToProcess = p.Object.HiveFile;
+                hiveToProcess = _fluentCommandLineParser.Object.HiveFile;
             }
 
             logger.Info(header);
@@ -117,7 +125,7 @@ namespace AppCompatCacheParser
 
             try
             {
-                var appCompat = new AppCompatCache.AppCompatCache(p.Object.HiveFile);
+                var appCompat = new AppCompatCache.AppCompatCache(_fluentCommandLineParser.Object.HiveFile);
 
                 if (appCompat.Cache != null)
                 {
@@ -126,22 +134,22 @@ namespace AppCompatCacheParser
 
                     var outFileBase = string.Empty;
 
-                    if (p.Object.HiveFile?.Length > 0)
+                    if (_fluentCommandLineParser.Object.HiveFile?.Length > 0)
                     {
                         outFileBase =
-                            $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(p.Object.HiveFile)}_AppCompatCache.tsv";
+                            $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_AppCompatCache.tsv";
                     }
                     else
                     {
                         outFileBase = $"{appCompat.OperatingSystem}_{Environment.MachineName}_AppCompatCache.tsv";
                     }
 
-                    if (Directory.Exists(p.Object.SaveTo) == false)
+                    if (Directory.Exists(_fluentCommandLineParser.Object.SaveTo) == false)
                     {
-                        Directory.CreateDirectory(p.Object.SaveTo);
+                        Directory.CreateDirectory(_fluentCommandLineParser.Object.SaveTo);
                     }
 
-                    var outFilename = Path.Combine(p.Object.SaveTo, outFileBase);
+                    var outFilename = Path.Combine(_fluentCommandLineParser.Object.SaveTo, outFileBase);
 
                     logger.Info($"\r\nSaving results to '{outFilename}'");
 
@@ -149,13 +157,13 @@ namespace AppCompatCacheParser
                     sw.AutoFlush = true;
                     var csv = new CsvWriter(sw);
 
-                    csv.Configuration.RegisterClassMap<CacheOutputMap>();
+                    csv.Configuration.RegisterClassMap(new CacheOutputMap(_fluentCommandLineParser.Object.DateTimeFormat));
                     csv.Configuration.Delimiter = "\t";
                     //csv.Configuration.AllowComments = true;
 
                     csv.WriteHeader<CacheEntry>();
 
-                    if (p.Object.SortTimestamps)
+                    if (_fluentCommandLineParser.Object.SortTimestamps)
                     {
                         csv.WriteRecords(appCompat.Cache.Entries.OrderByDescending(t => t.LastModifiedTimeUTC));
                     }
@@ -188,15 +196,17 @@ namespace AppCompatCacheParser
         public bool FindEvidence { get; set; }
         public bool SortTimestamps { get; set; }
         public string SaveTo { get; set; }
+
+        public string DateTimeFormat { get; set; }
     }
 
     public sealed class CacheOutputMap : CsvClassMap<CacheEntry>
     {
-        public CacheOutputMap()
+        public CacheOutputMap(string dateformat)
         {
             Map(m => m.CacheEntryPosition);
             Map(m => m.Path);
-            Map(m => m.LastModifiedTimeUTC).TypeConverterOption("MM-dd-yyyy HH:mm:ss");
+            Map(m => m.LastModifiedTimeUTC).TypeConverterOption(dateformat);
         }
     }
 }
