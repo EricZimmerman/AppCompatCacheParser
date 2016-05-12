@@ -7,6 +7,8 @@ namespace AppCompatCache
         public int CacheEntryPosition { get; set; }
         public int CacheEntrySize { get; set; }
         public byte[] Data { get; set; }
+        public AppCompatCache.InsertFlag InsertFlags { get; set; }
+        public AppCompatCache.Execute Executed { get; set; }
         public int DataSize { get; set; }
         public DateTimeOffset LastModifiedTimeUTC { get; set; }
         public string Path { get; set; }

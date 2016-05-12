@@ -54,6 +54,9 @@ namespace AppCompatCache
                         }
 
                         ce.CacheEntryPosition = position;
+
+                        ce.Executed = AppCompatCache.Execute.Unknown;
+
                         Entries.Add(ce);
                         position += 1;
 

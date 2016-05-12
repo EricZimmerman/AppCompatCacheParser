@@ -42,6 +42,7 @@ namespace AppCompatCache
                         index += 8;
 
                         // skip 4 unknown (insertion flags?)
+                        ce.InsertFlags = (AppCompatCache.InsertFlag)BitConverter.ToInt32(rawBytes, index);
                         index += 4;
 
                         // skip 4 unknown (shim flags?)
@@ -54,6 +55,15 @@ namespace AppCompatCache
                         index += 4;
 
                         ce.Path = Encoding.Unicode.GetString(rawBytes, pathOffset, ce.PathSize);
+
+                        if ((ce.InsertFlags & AppCompatCache.InsertFlag.Executed) == AppCompatCache.InsertFlag.Executed)
+                        {
+                            ce.Executed = AppCompatCache.Execute.Yes;
+                        }
+                        else
+                        {
+                            ce.Executed = AppCompatCache.Execute.No;
+                        }
 
                         ce.CacheEntryPosition = position;
                         Entries.Add(ce);
@@ -98,6 +108,7 @@ namespace AppCompatCache
                         index += 8;
 
                         // skip 4 unknown (insertion flags?)
+                        ce.InsertFlags = (AppCompatCache.InsertFlag)BitConverter.ToInt32(rawBytes, index);
                         index += 4;
 
                         // skip 4 unknown (shim flags?)
@@ -110,6 +121,17 @@ namespace AppCompatCache
                         index += 8;
 
                         ce.Path = Encoding.Unicode.GetString(rawBytes, (int) pathOffset, ce.PathSize);
+
+                        if ((ce.InsertFlags & AppCompatCache.InsertFlag.Executed) == AppCompatCache.InsertFlag.Executed)
+                        {
+                            ce.Executed = AppCompatCache.Execute.Yes;
+                        }
+                        else
+                        {
+                            ce.Executed = AppCompatCache.Execute.No;
+                        }
+
+                        
 
                         ce.CacheEntryPosition = position;
                         Entries.Add(ce);

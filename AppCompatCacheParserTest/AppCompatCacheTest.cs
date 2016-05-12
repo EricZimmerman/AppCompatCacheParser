@@ -49,7 +49,7 @@ namespace AppCompatCacheTest
         public void Win80ShouldFindEntries()
         {
             var a = new Windows8x(Win80, AppCompatCache.AppCompatCache.OperatingSystemVersion.Windows80_Windows2012);
-            Check.That(a.Entries.Count).Equals(58);
+            Check.That(a.Entries.Count).Equals(104);
         }
 
         [Test]

@@ -19,6 +19,34 @@ namespace AppCompatCache
             Unknown
         }
 
+        public enum Execute
+        {
+            Yes,
+            No,
+            Unknown
+        }
+
+        [Flags]
+        public enum InsertFlag
+        {
+            Unknown1 = 0x00000001,
+            Executed = 0x00000002,
+            Unknown4 = 0x00000004,
+            Unknown8 = 0x00000008,
+            Unknown10 = 0x00000010,
+            Unknown20 = 0x00000020,
+            Unknown40 = 0x00000040,
+            Unknown80 = 0x00000080,
+            Unknown10000 = 0x00010000,
+            Unknown20000 = 0x00020000,
+            Unknown30000 = 0x00030000,
+            Unknown40000 = 0x00040000,
+            Unknown100000 = 0x00100000,
+            Unknown200000 = 0x00200000,
+            Unknown400000 = 0x00400000,
+            Unknown800000 = 0x00800000,
+        }
+
         public AppCompatCache(byte[] rawBytes)
         {
             Init(rawBytes, false);
@@ -58,6 +86,11 @@ namespace AppCompatCache
 
                 var hive = new RegistryHiveOnDemand(filename);
                 var subKey = hive.GetKey("Select");
+
+                if (subKey == null)
+                {
+                    throw new Exception($"'Select' key not found. Is '{filename}' a system hive?");
+                }
 
                 var currentCtlSet = int.Parse(subKey.Values.Single(c => c.ValueName == "Current").ValueData);
 

@@ -50,25 +50,40 @@ namespace AppCompatCache
                     ce.Path = Encoding.Unicode.GetString(rawBytes, index, ce.PathSize);
                     index += ce.PathSize;
 
+                    var packageLen = BitConverter.ToUInt16(rawBytes, index);
+                    index += 2;
+                    //skip package data
+                    index += packageLen;
+
                     // skip 4 unknown (insertion flags?)
+                    ce.InsertFlags = (AppCompatCache.InsertFlag) BitConverter.ToInt32(rawBytes, index);
                     index += 4;
 
                     // skip 4 unknown (shim flags?)
                     index += 4;
 
-                    // skip 2 unknown
-                    index += 2;
 
                     ce.LastModifiedTimeUTC =
                         DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
 
                     index += 8;
 
+                    
+
                     ce.DataSize = BitConverter.ToInt32(rawBytes, index);
                     index += 4;
 
                     ce.Data = rawBytes.Skip(index).Take(ce.DataSize).ToArray();
                     index += ce.DataSize;
+
+                    if ((ce.InsertFlags & AppCompatCache.InsertFlag.Executed) == AppCompatCache.InsertFlag.Executed)
+                    {
+                        ce.Executed = AppCompatCache.Execute.Yes;
+                    }
+                    else
+                    {
+                        ce.Executed = AppCompatCache.Execute.No;
+                    }
 
                     ce.CacheEntryPosition = position;
 
