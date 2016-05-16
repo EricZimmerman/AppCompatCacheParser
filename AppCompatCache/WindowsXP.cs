@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using NLog;
 
 namespace AppCompatCache
 {
@@ -13,7 +14,7 @@ namespace AppCompatCache
 
             var index = 4;
 
-            var cacheItems = BitConverter.ToUInt32(rawBytes, index);
+            EntryCount = BitConverter.ToInt32(rawBytes, index);
             index += 4;
 
             var lruArrauEntries = BitConverter.ToUInt32(rawBytes, index);
@@ -60,14 +61,20 @@ namespace AppCompatCache
                         Entries.Add(ce);
                         position += 1;
 
-                        if (Entries.Count == cacheItems)
+                        if (Entries.Count == EntryCount)
                         {
                             break;
                         }
                     }
                     catch (Exception ex)
                     {
+                        var _log = LogManager.GetCurrentClassLogger();
+                        _log.Error($"Error parsing cache entry. Position: {position} Index: {index}, Error: {ex.Message} ");
                         //TODO Report this
+                        if (Entries.Count < EntryCount)
+                        {
+                            throw;
+                        }
                         //take what we can get
                         break;
                     }
@@ -121,7 +128,7 @@ namespace AppCompatCache
                         position += 1;
 
 
-                        if (Entries.Count == cacheItems)
+                        if (Entries.Count == EntryCount)
                         {
                             break;
                         }
@@ -138,5 +145,6 @@ namespace AppCompatCache
         }
 
         public List<CacheEntry> Entries { get; }
+        public int EntryCount { get; }
     }
 }

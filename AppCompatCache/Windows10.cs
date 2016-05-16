@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NLog;
 
 namespace AppCompatCache
 {
@@ -12,6 +13,8 @@ namespace AppCompatCache
             Entries = new List<CacheEntry>();
 
             var index = 48;
+
+            EntryCount = -1;
 
             var position = 0;
 
@@ -61,6 +64,8 @@ namespace AppCompatCache
                 }
                 catch (Exception ex)
                 {
+                    var _log = LogManager.GetCurrentClassLogger();
+                    _log.Error($"Error parsing cache entry. Position: {position} Index: {index}, Error: {ex.Message} ");
                     //TODO Report this
                     //take what we can get
                     break;
@@ -69,5 +74,6 @@ namespace AppCompatCache
         }
 
         public List<CacheEntry> Entries { get; }
+        public int EntryCount { get; }
     }
 }

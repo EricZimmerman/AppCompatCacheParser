@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NLog;
 
 namespace AppCompatCache
 {
@@ -14,6 +15,8 @@ namespace AppCompatCache
             var index = 128;
 
             var signature = "00ts";
+
+            EntryCount = -1;
 
             if (os == AppCompatCache.OperatingSystemVersion.Windows81_Windows2012R2)
             {
@@ -62,13 +65,10 @@ namespace AppCompatCache
                     // skip 4 unknown (shim flags?)
                     index += 4;
 
-
                     ce.LastModifiedTimeUTC =
                         DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
 
                     index += 8;
-
-                    
 
                     ce.DataSize = BitConverter.ToInt32(rawBytes, index);
                     index += 4;
@@ -92,6 +92,9 @@ namespace AppCompatCache
                 }
                 catch (Exception ex)
                 {
+                    var _log = LogManager.GetCurrentClassLogger();
+                    _log.Error($"Error parsing cache entry. Position: {position} Index: {index}, Error: {ex.Message} ");
+
                     //TODO report this
                     //take what we can get
                     break;
@@ -100,5 +103,6 @@ namespace AppCompatCache
         }
 
         public List<CacheEntry> Entries { get; }
+        public int EntryCount { get; }
     }
 }
