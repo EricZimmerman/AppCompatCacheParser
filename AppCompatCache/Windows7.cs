@@ -23,7 +23,7 @@ namespace AppCompatCache
 
             if (is32Bit)
             {
-                while (index <= rawBytes.Length)
+                while (index < rawBytes.Length)
                 {
                     try
                     {
@@ -96,7 +96,7 @@ namespace AppCompatCache
             }
             else
             {
-                while (index <= rawBytes.Length)
+                while (index < rawBytes.Length)
                 {
                     try
                     {

@@ -132,53 +132,78 @@ namespace AppCompatCacheParser
             {
                 var appCompat = new AppCompatCache.AppCompatCache(_fluentCommandLineParser.Object.HiveFile, _fluentCommandLineParser.Object.ControlSet);
 
-                if (appCompat.Cache != null)
+                var outFileBase = string.Empty;
+
+                if (_fluentCommandLineParser.Object.HiveFile?.Length > 0)
                 {
-                    logger.Info(
-                        $"Found {appCompat.Cache.Entries.Count:N0} cache entries for {appCompat.OperatingSystem}");
-
-                    var outFileBase = string.Empty;
-
-                    if (_fluentCommandLineParser.Object.HiveFile?.Length > 0)
+                    if (_fluentCommandLineParser.Object.ControlSet >= 0)
                     {
                         outFileBase =
-                            $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_ControlSet00{appCompat.ControlSet}_AppCompatCache.tsv";
+                        $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_ControlSet00{_fluentCommandLineParser.Object.ControlSet}_AppCompatCache.tsv";
                     }
                     else
                     {
-                        outFileBase = $"{appCompat.OperatingSystem}_{Environment.MachineName}_AppCompatCache.tsv";
+                        outFileBase =
+                            $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_AppCompatCache.tsv";
                     }
+                    
+                }
+                else
+                {
+                    outFileBase = $"{appCompat.OperatingSystem}_{Environment.MachineName}_AppCompatCache.tsv";
+                }
 
-                    if (Directory.Exists(_fluentCommandLineParser.Object.SaveTo) == false)
+                if (Directory.Exists(_fluentCommandLineParser.Object.SaveTo) == false)
+                {
+                    Directory.CreateDirectory(_fluentCommandLineParser.Object.SaveTo);
+                }
+
+                var outFilename = Path.Combine(_fluentCommandLineParser.Object.SaveTo, outFileBase);
+
+                logger.Info($"\r\nResults will be saved to '{outFilename}'\r\n");
+
+                var sw = new StreamWriter(outFilename);
+                sw.AutoFlush = true;
+                var csv = new CsvWriter(sw);
+
+                csv.Configuration.RegisterClassMap(new CacheOutputMap(_fluentCommandLineParser.Object.DateTimeFormat));
+                csv.Configuration.Delimiter = "\t";
+
+                csv.WriteHeader<CacheEntry>();
+
+                if (appCompat.Caches.Any())
+                {
+                    foreach (var appCompatCach in appCompat.Caches)
                     {
-                        Directory.CreateDirectory(_fluentCommandLineParser.Object.SaveTo);
+                        if (appCompatCach.ControlSet == -1)
+                        {
+                            logger.Info(
+                        $"Found {appCompatCach.Entries.Count:N0} cache entries for {appCompat.OperatingSystem} in CurrentControlSet");
+                        }
+                        else
+                        {
+                            logger.Info(
+                            $"Found {appCompatCach.Entries.Count:N0} cache entries for {appCompat.OperatingSystem} in ControlSet00{appCompatCach.ControlSet}");
+                        }
+                        
+
+                       
+
+                        if (_fluentCommandLineParser.Object.SortTimestamps)
+                        {
+                            csv.WriteRecords(appCompatCach.Entries.OrderByDescending(t => t.LastModifiedTimeUTC));
+                        }
+                        else
+                        {
+                            csv.WriteRecords(appCompatCach.Entries);
+                        }
+
+
+                     
                     }
-
-                    var outFilename = Path.Combine(_fluentCommandLineParser.Object.SaveTo, outFileBase);
-
-                    logger.Info($"\r\nSaving results to '{outFilename}'");
-
-                    var sw = new StreamWriter(outFilename);
-                    sw.AutoFlush = true;
-                    var csv = new CsvWriter(sw);
-
-                    csv.Configuration.RegisterClassMap(new CacheOutputMap(_fluentCommandLineParser.Object.DateTimeFormat));
-                    csv.Configuration.Delimiter = "\t";
-                    //csv.Configuration.AllowComments = true;
-
-                    csv.WriteHeader<CacheEntry>();
-
-                    if (_fluentCommandLineParser.Object.SortTimestamps)
-                    {
-                        csv.WriteRecords(appCompat.Cache.Entries.OrderByDescending(t => t.LastModifiedTimeUTC));
-                    }
-                    else
-                    {
-                        csv.WriteRecords(appCompat.Cache.Entries);
-                    }
-
 
                     sw.Close();
+
                 }
             }
             catch (Exception ex)

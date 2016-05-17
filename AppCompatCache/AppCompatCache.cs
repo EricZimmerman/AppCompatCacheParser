@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using NLog;
 using Registry;
+using Registry.Abstractions;
 
 namespace AppCompatCache
 {
@@ -51,25 +52,32 @@ namespace AppCompatCache
 
         public AppCompatCache(byte[] rawBytes, int controlSet)
         {
-            Init(rawBytes, false,controlSet);
+            Caches = new List<IAppCompatCache>();
+         var cache=   Init(rawBytes, false,controlSet);
+            Caches.Add(cache);
         }
 
         public AppCompatCache(string filename, int controlSet)
         {
             byte[] rawBytes = null;
+            Caches = new List<IAppCompatCache>();
+
+            var controlSetIds = new List<int>();
+
+            RegistryKey subKey = null;
 
             var isLiveRegistry = string.IsNullOrEmpty(filename);
 
             if (isLiveRegistry)
             {
                 var keyCurrUser = Microsoft.Win32.Registry.LocalMachine;
-                var subKey = keyCurrUser.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatCache");
+                var subKey2 = keyCurrUser.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatCache");
 
-                if (subKey == null)
+                if (subKey2 == null)
                 {
-                    subKey = keyCurrUser.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatibility");
+                    subKey2 = keyCurrUser.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatibility");
 
-                    if (subKey == null)
+                    if (subKey2 == null)
                     {
                         Console.WriteLine(
                             @"'CurrentControlSet\Control\Session Manager\AppCompatCache' key not found! Exiting");
@@ -77,57 +85,55 @@ namespace AppCompatCache
                     }
                 }
 
-                rawBytes = (byte[]) subKey.GetValue("AppCompatCache", null);
+                rawBytes = (byte[]) subKey2.GetValue("AppCompatCache", null);
+
+                var is32Bit = Is32Bit(filename);
+
+                var cache = Init(rawBytes, is32Bit, -1);
+
+                Caches.Add(cache);
+
+                return;
+            }
+
+
+
+            ControlSet = controlSet;
+
+            if (File.Exists(filename) == false)
+            {
+                throw new FileNotFoundException($"File not found ({filename})!");
+            }
+
+            var hive = new RegistryHiveOnDemand(filename);
+              
+           
+
+            if (controlSet == -1)
+            {
+//                    ControlSet = int.Parse(subKey.Values.Single(c => c.ValueName == "Current").ValueData);
+  
+                for (int i = 0; i < 10; i++)
+                {
+                    subKey = hive.GetKey($@"ControlSet00{i}\Control\Session Manager\AppCompatCache");
+
+                    if (subKey != null)
+                    {
+                        controlSetIds.Add(i);
+                    }
+                }
+
+                if (controlSetIds.Any())
+                {
+                    var log = LogManager.GetCurrentClassLogger();
+
+                    log.Warn($"***The following ControlSet00x keys will be exported: {string.Join(",",controlSetIds)}. Use -c to process keys individually\r\n");
+                }
+                       
             }
             else
             {
-
-                ControlSet = controlSet;
-
-                if (File.Exists(filename) == false)
-                {
-                    throw new FileNotFoundException($"File not found ({filename})!");
-                }
-
-                var hive = new RegistryHiveOnDemand(filename);
-              
-                var subKey = hive.GetKey("Select");
-
-                if (controlSet == -1)
-                {
-                    if (subKey == null)
-                    {
-                        throw new Exception($"'Select' key not found. Is '{filename}' a system hive?");
-                    }
-
-                    ControlSet = int.Parse(subKey.Values.Single(c => c.ValueName == "Current").ValueData);
-              
-                   var sets = new List<int>();
-
-                    for (int i = 0; i < 5; i++)
-                    {
-                        if (i == ControlSet)
-                        {
-                            continue;
-                        }
-
-                        subKey = hive.GetKey($@"ControlSet00{i}\Control\Session Manager\AppCompatCache");
-
-                        if (subKey != null)
-                        {
-                            sets.Add(i);
-                        }
-                    }
-
-                    if (sets.Any())
-                    {
-                        var _log = LogManager.GetCurrentClassLogger();
-
-                        _log.Warn($"***Found the following additional ControlSet00x keys: {string.Join(",",sets)}. Use -c to process these keys\r\n");
-                    }
-                       
-                }
-
+                //a control set was passed in
                 subKey = hive.GetKey($@"ControlSet00{ControlSet}\Control\Session Manager\AppCompatCache");
 
                 if (subKey == null)
@@ -140,34 +146,56 @@ namespace AppCompatCache
                     throw new Exception($"Could not find ControlSet00{ControlSet}. Exiting");
                 }
 
+                controlSetIds.Add(ControlSet);
+            }
+
+
+            var is32 = Is32Bit(filename);
+
+            foreach (var id in controlSetIds)
+            {
+                var hive2 = new RegistryHiveOnDemand(filename);
+
+                subKey = hive2.GetKey($@"ControlSet00{id}\Control\Session Manager\AppCompatCache");
+
+                if (subKey == null)
+                {
+                    subKey = hive2.GetKey($@"ControlSet00{id}\Control\Session Manager\AppCompatibility");
+                }
+
                 var val = subKey?.Values.SingleOrDefault(c => c.ValueName == "AppCompatCache");
 
                 if (val != null)
                 {
                     rawBytes = val.ValueDataRaw;
                 }
+
+                if (rawBytes == null)
+                {
+                    var log = LogManager.GetCurrentClassLogger();
+
+                    log.Error($@"'AppCompatCache' value not found for 'ControlSet00{id}'! Exiting");
+            
+                }
+
+                var cache = Init(rawBytes, is32, id);
+
+                Caches.Add(cache);
             }
 
-            if (rawBytes == null)
-            {
-                Console.WriteLine(@"'AppCompatCache' value not found! Exiting");
-                return;
-            }
+        
 
-            var is32 = Is32Bit(filename);
-
-            Init(rawBytes, is32,ControlSet);
         }
 
         public int ControlSet { get; }
 
-        public IAppCompatCache Cache { get; private set; }
+        public List<IAppCompatCache> Caches { get; private set; }
         public OperatingSystemVersion OperatingSystem { get; private set; }
 
         //https://github.com/libyal/winreg-kb/wiki/Application-Compatibility-Cache-key
         //https://dl.mandiant.com/EE/library/Whitepaper_ShimCacheParser.pdf
 
-        private void Init(byte[] rawBytes, bool is32, int controlSet)
+        private IAppCompatCache Init(byte[] rawBytes, bool is32, int controlSet)
         {
             IAppCompatCache appCache = null;
             OperatingSystem = OperatingSystemVersion.Unknown;
@@ -223,7 +251,7 @@ namespace AppCompatCache
 
             
 
-            Cache = appCache;
+            return appCache;
         }
 
         public static bool Is32Bit(string fileName)

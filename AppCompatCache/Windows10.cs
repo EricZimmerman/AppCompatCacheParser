@@ -19,7 +19,7 @@ namespace AppCompatCache
 
             var position = 0;
 
-            while (index <= rawBytes.Length)
+            while (index < rawBytes.Length)
             {
                 try
                 {

@@ -27,7 +27,7 @@ namespace AppCompatCache
 
             if (is32Bit)
             {
-                while (index <= rawBytes.Length)
+                while (index < rawBytes.Length)
                 {
                     try
                     {
@@ -86,7 +86,7 @@ namespace AppCompatCache
             {
                 throw new Exception(
                     "64 bit XP support not available. send the hive to saericzimmerman@gmail.com so support can be added");
-                while (index <= rawBytes.Length)
+                while (index < rawBytes.Length)
                 {
                     try
                     {
