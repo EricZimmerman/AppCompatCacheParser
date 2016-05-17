@@ -80,9 +80,9 @@ namespace AppCompatCacheParser
                 .SetDefault(false);
 
             _fluentCommandLineParser.Setup(arg => arg.ControlSet)
-    .As('c')
-    .WithDescription("The ControlSet to parse. Default is to detect the current control set.")
-    .SetDefault(-1);
+                .As('c')
+                .WithDescription("The ControlSet to parse. Default is to detect the current control set.")
+                .SetDefault(-1);
 
             _fluentCommandLineParser.Setup(arg => arg.DateTimeFormat)
                 .As("dt")
@@ -130,7 +130,8 @@ namespace AppCompatCacheParser
 
             try
             {
-                var appCompat = new AppCompatCache.AppCompatCache(_fluentCommandLineParser.Object.HiveFile, _fluentCommandLineParser.Object.ControlSet);
+                var appCompat = new AppCompatCache.AppCompatCache(_fluentCommandLineParser.Object.HiveFile,
+                    _fluentCommandLineParser.Object.ControlSet);
 
                 var outFileBase = string.Empty;
 
@@ -139,14 +140,13 @@ namespace AppCompatCacheParser
                     if (_fluentCommandLineParser.Object.ControlSet >= 0)
                     {
                         outFileBase =
-                        $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_ControlSet00{_fluentCommandLineParser.Object.ControlSet}_AppCompatCache.tsv";
+                            $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_ControlSet00{_fluentCommandLineParser.Object.ControlSet}_AppCompatCache.tsv";
                     }
                     else
                     {
                         outFileBase =
                             $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_AppCompatCache.tsv";
                     }
-                    
                 }
                 else
                 {
@@ -178,16 +178,14 @@ namespace AppCompatCacheParser
                         if (appCompatCach.ControlSet == -1)
                         {
                             logger.Info(
-                        $"Found {appCompatCach.Entries.Count:N0} cache entries for {appCompat.OperatingSystem} in CurrentControlSet");
+                                $"Found {appCompatCach.Entries.Count:N0} cache entries for {appCompat.OperatingSystem} in CurrentControlSet");
                         }
                         else
                         {
                             logger.Info(
-                            $"Found {appCompatCach.Entries.Count:N0} cache entries for {appCompat.OperatingSystem} in ControlSet00{appCompatCach.ControlSet}");
+                                $"Found {appCompatCach.Entries.Count:N0} cache entries for {appCompat.OperatingSystem} in ControlSet00{appCompatCach.ControlSet}");
                         }
-                        
 
-                       
 
                         if (_fluentCommandLineParser.Object.SortTimestamps)
                         {
@@ -197,13 +195,9 @@ namespace AppCompatCacheParser
                         {
                             csv.WriteRecords(appCompatCach.Entries);
                         }
-
-
-                     
                     }
 
                     sw.Close();
-
                 }
             }
             catch (Exception ex)

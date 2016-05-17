@@ -71,7 +71,8 @@ namespace AppCompatCache
                     catch (Exception ex)
                     {
                         var _log = LogManager.GetCurrentClassLogger();
-                        _log.Error($"Error parsing cache entry. Position: {position} Index: {index}, Error: {ex.Message} ");
+                        _log.Error(
+                            $"Error parsing cache entry. Position: {position} Index: {index}, Error: {ex.Message} ");
                         //TODO Report this
                         if (Entries.Count < EntryCount)
                         {

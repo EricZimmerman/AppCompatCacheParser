@@ -11,17 +11,6 @@ namespace AppCompatCache
 {
     public class AppCompatCache
     {
-        public enum OperatingSystemVersion
-        {
-            WindowsXP,
-            Windows7x86,
-            Windows7x64_Windows2008R2,
-            Windows80_Windows2012,
-            Windows81_Windows2012R2,
-            Windows10,
-            Unknown
-        }
-
         public enum Execute
         {
             Yes,
@@ -47,13 +36,24 @@ namespace AppCompatCache
             Unknown100000 = 0x00100000,
             Unknown200000 = 0x00200000,
             Unknown400000 = 0x00400000,
-            Unknown800000 = 0x00800000,
+            Unknown800000 = 0x00800000
+        }
+
+        public enum OperatingSystemVersion
+        {
+            WindowsXP,
+            Windows7x86,
+            Windows7x64_Windows2008R2,
+            Windows80_Windows2012,
+            Windows81_Windows2012R2,
+            Windows10,
+            Unknown
         }
 
         public AppCompatCache(byte[] rawBytes, int controlSet)
         {
             Caches = new List<IAppCompatCache>();
-         var cache=   Init(rawBytes, false,controlSet);
+            var cache = Init(rawBytes, false, controlSet);
             Caches.Add(cache);
         }
 
@@ -75,7 +75,8 @@ namespace AppCompatCache
 
                 if (subKey2 == null)
                 {
-                    subKey2 = keyCurrUser.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatibility");
+                    subKey2 =
+                        keyCurrUser.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatibility");
 
                     if (subKey2 == null)
                     {
@@ -87,15 +88,17 @@ namespace AppCompatCache
 
                 rawBytes = (byte[]) subKey2.GetValue("AppCompatCache", null);
 
+                subKey2 = keyCurrUser.OpenSubKey(@"SYSTEM\Select");
+                ControlSet = (int) subKey2.GetValue("Current");
+
                 var is32Bit = Is32Bit(filename);
 
-                var cache = Init(rawBytes, is32Bit, -1);
+                var cache = Init(rawBytes, is32Bit, ControlSet);
 
                 Caches.Add(cache);
 
                 return;
             }
-
 
 
             ControlSet = controlSet;
@@ -106,14 +109,11 @@ namespace AppCompatCache
             }
 
             var hive = new RegistryHiveOnDemand(filename);
-              
-           
+
 
             if (controlSet == -1)
             {
-//                    ControlSet = int.Parse(subKey.Values.Single(c => c.ValueName == "Current").ValueData);
-  
-                for (int i = 0; i < 10; i++)
+                for (var i = 0; i < 10; i++)
                 {
                     subKey = hive.GetKey($@"ControlSet00{i}\Control\Session Manager\AppCompatCache");
 
@@ -127,9 +127,9 @@ namespace AppCompatCache
                 {
                     var log = LogManager.GetCurrentClassLogger();
 
-                    log.Warn($"***The following ControlSet00x keys will be exported: {string.Join(",",controlSetIds)}. Use -c to process keys individually\r\n");
+                    log.Warn(
+                        $"***The following ControlSet00x keys will be exported: {string.Join(",", controlSetIds)}. Use -c to process keys individually\r\n");
                 }
-                       
             }
             else
             {
@@ -175,21 +175,17 @@ namespace AppCompatCache
                     var log = LogManager.GetCurrentClassLogger();
 
                     log.Error($@"'AppCompatCache' value not found for 'ControlSet00{id}'! Exiting");
-            
                 }
 
                 var cache = Init(rawBytes, is32, id);
 
                 Caches.Add(cache);
             }
-
-        
-
         }
 
         public int ControlSet { get; }
 
-        public List<IAppCompatCache> Caches { get; private set; }
+        public List<IAppCompatCache> Caches { get; }
         public OperatingSystemVersion OperatingSystem { get; private set; }
 
         //https://github.com/libyal/winreg-kb/wiki/Application-Compatibility-Cache-key
@@ -249,7 +245,6 @@ namespace AppCompatCache
                 }
             }
 
-            
 
             return appCache;
         }

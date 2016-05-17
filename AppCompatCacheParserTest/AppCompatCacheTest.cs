@@ -28,7 +28,7 @@ namespace AppCompatCacheTest
         public void OneOff()
         {
             var foo = File.ReadAllBytes(@"C:\Users\e\Desktop\AppCompatCache_CurrentControlSet002_export.bin");
-            var a = new Windows7(foo,false,-1);
+            var a = new Windows7(foo, false, -1);
         }
 
         [Test]
@@ -147,7 +147,8 @@ namespace AppCompatCacheTest
         [Test]
         public void Win81ShouldFindEntries()
         {
-            var a = new Windows8x(Win81, AppCompatCache.AppCompatCache.OperatingSystemVersion.Windows81_Windows2012R2, -1);
+            var a = new Windows8x(Win81, AppCompatCache.AppCompatCache.OperatingSystemVersion.Windows81_Windows2012R2,
+                -1);
             Check.That(a.Entries.Count).Equals(1024);
             Check.That(a.EntryCount).Equals(-1);
 
