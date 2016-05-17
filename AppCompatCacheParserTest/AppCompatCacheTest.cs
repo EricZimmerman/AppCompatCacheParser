@@ -25,9 +25,16 @@ namespace AppCompatCacheTest
         public byte[] Win10;
 
         [Test]
+        public void OneOff()
+        {
+            var foo = File.ReadAllBytes(@"C:\Users\e\Desktop\AppCompatCache_CurrentControlSet002_export.bin");
+            var a = new Windows7(foo,false,-1);
+        }
+
+        [Test]
         public void Win10ShouldFindEntries()
         {
-            var a = new Windows10(Win10);
+            var a = new Windows10(Win10, -1);
             Check.That(a.Entries.Count).Equals(350);
             Check.That(a.EntryCount).Equals(-1);
 
@@ -55,7 +62,7 @@ namespace AppCompatCacheTest
         [Test]
         public void Win7x64ShouldFindEntries()
         {
-            var a = new Windows7(Win7X64, false);
+            var a = new Windows7(Win7X64, false, -1);
             Check.That(a.Entries.Count).Equals(304);
             Check.That(a.EntryCount).Equals(304);
 
@@ -83,7 +90,7 @@ namespace AppCompatCacheTest
         [Test]
         public void Win7x86ShouldFindEntries()
         {
-            var a = new Windows7(Win7X86, true);
+            var a = new Windows7(Win7X86, true, -1);
             Check.That(a.Entries.Count).Equals(91);
             Check.That(a.EntryCount).Equals(91);
 
@@ -111,7 +118,7 @@ namespace AppCompatCacheTest
         [Test]
         public void Win80ShouldFindEntries()
         {
-            var a = new Windows8x(Win80, AppCompatCache.AppCompatCache.OperatingSystemVersion.Windows80_Windows2012);
+            var a = new Windows8x(Win80, AppCompatCache.AppCompatCache.OperatingSystemVersion.Windows80_Windows2012, -1);
             Check.That(a.Entries.Count).Equals(104);
             Check.That(a.EntryCount).Equals(-1);
 
@@ -140,7 +147,7 @@ namespace AppCompatCacheTest
         [Test]
         public void Win81ShouldFindEntries()
         {
-            var a = new Windows8x(Win81, AppCompatCache.AppCompatCache.OperatingSystemVersion.Windows81_Windows2012R2);
+            var a = new Windows8x(Win81, AppCompatCache.AppCompatCache.OperatingSystemVersion.Windows81_Windows2012R2, -1);
             Check.That(a.Entries.Count).Equals(1024);
             Check.That(a.EntryCount).Equals(-1);
 

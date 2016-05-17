@@ -14,6 +14,7 @@ namespace AppCompatCache
         public string Path { get; set; }
         public int PathSize { get; set; }
         public string Signature { get; set; }
+        public int ControlSet { get; set; }
 
         public override string ToString()
         {

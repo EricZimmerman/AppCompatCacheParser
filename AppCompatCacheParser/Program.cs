@@ -76,8 +76,13 @@ namespace AppCompatCacheParser
 
             _fluentCommandLineParser.Setup(arg => arg.SortTimestamps)
                 .As('t')
-                .WithDescription("If true, sorts timestamps in descending order")
+                .WithDescription("Sorts timestamps in descending order")
                 .SetDefault(false);
+
+            _fluentCommandLineParser.Setup(arg => arg.ControlSet)
+    .As('c')
+    .WithDescription("The ControlSet to parse. Default is to detect the current control set.")
+    .SetDefault(-1);
 
             _fluentCommandLineParser.Setup(arg => arg.DateTimeFormat)
                 .As("dt")
@@ -105,7 +110,7 @@ namespace AppCompatCacheParser
                 _fluentCommandLineParser.HelpOption.ShowHelp(_fluentCommandLineParser.Options);
 
                 logger.Info(
-                    @"Example: AppCompatCacheParser.exe -s c:\temp -t");
+                    @"Example: AppCompatCacheParser.exe -s c:\temp -t -c 2");
                 return;
             }
 
@@ -125,7 +130,7 @@ namespace AppCompatCacheParser
 
             try
             {
-                var appCompat = new AppCompatCache.AppCompatCache(_fluentCommandLineParser.Object.HiveFile);
+                var appCompat = new AppCompatCache.AppCompatCache(_fluentCommandLineParser.Object.HiveFile, _fluentCommandLineParser.Object.ControlSet);
 
                 if (appCompat.Cache != null)
                 {
@@ -137,7 +142,7 @@ namespace AppCompatCacheParser
                     if (_fluentCommandLineParser.Object.HiveFile?.Length > 0)
                     {
                         outFileBase =
-                            $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_AppCompatCache.tsv";
+                            $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_ControlSet00{appCompat.ControlSet}_AppCompatCache.tsv";
                     }
                     else
                     {
@@ -195,6 +200,7 @@ namespace AppCompatCacheParser
         public string HiveFile { get; set; }
         public bool FindEvidence { get; set; }
         public bool SortTimestamps { get; set; }
+        public int ControlSet { get; set; }
         public string SaveTo { get; set; }
 
         public string DateTimeFormat { get; set; }
@@ -204,6 +210,7 @@ namespace AppCompatCacheParser
     {
         public CacheOutputMap(string dateformat)
         {
+            Map(m => m.ControlSet);
             Map(m => m.CacheEntryPosition);
             Map(m => m.Path);
             Map(m => m.LastModifiedTimeUTC).TypeConverterOption(dateformat);

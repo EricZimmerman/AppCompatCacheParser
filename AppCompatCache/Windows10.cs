@@ -8,11 +8,12 @@ namespace AppCompatCache
 {
     public class Windows10 : IAppCompatCache
     {
-        public Windows10(byte[] rawBytes)
+        public Windows10(byte[] rawBytes, int controlSet)
         {
             Entries = new List<CacheEntry>();
 
             var index = 48;
+            ControlSet = controlSet;
 
             EntryCount = -1;
 
@@ -57,6 +58,7 @@ namespace AppCompatCache
 
                     ce.Executed = AppCompatCache.Execute.Unknown;
 
+                    ce.ControlSet = controlSet;
                     ce.CacheEntryPosition = position;
 
                     Entries.Add(ce);
@@ -75,5 +77,6 @@ namespace AppCompatCache
 
         public List<CacheEntry> Entries { get; }
         public int EntryCount { get; }
+        public int ControlSet { get; }
     }
 }

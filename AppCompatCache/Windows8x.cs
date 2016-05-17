@@ -8,13 +8,15 @@ namespace AppCompatCache
 {
     public class Windows8x : IAppCompatCache
     {
-        public Windows8x(byte[] rawBytes, AppCompatCache.OperatingSystemVersion os)
+        public Windows8x(byte[] rawBytes, AppCompatCache.OperatingSystemVersion os, int controlSet)
         {
             Entries = new List<CacheEntry>();
 
             var index = 128;
 
             var signature = "00ts";
+
+            ControlSet = controlSet;
 
             EntryCount = -1;
 
@@ -85,6 +87,8 @@ namespace AppCompatCache
                         ce.Executed = AppCompatCache.Execute.No;
                     }
 
+                    ce.ControlSet = controlSet;
+
                     ce.CacheEntryPosition = position;
 
                     Entries.Add(ce);
@@ -104,5 +108,6 @@ namespace AppCompatCache
 
         public List<CacheEntry> Entries { get; }
         public int EntryCount { get; }
+        public int ControlSet { get; }
     }
 }

@@ -8,11 +8,12 @@ namespace AppCompatCache
 {
     public class WindowsXP : IAppCompatCache
     {
-        public WindowsXP(byte[] rawBytes, bool is32Bit)
+        public WindowsXP(byte[] rawBytes, bool is32Bit, int controlSet)
         {
             Entries = new List<CacheEntry>();
 
             var index = 4;
+            ControlSet = controlSet;
 
             EntryCount = BitConverter.ToInt32(rawBytes, index);
             index += 4;
@@ -55,6 +56,7 @@ namespace AppCompatCache
                         }
 
                         ce.CacheEntryPosition = position;
+                        ce.ControlSet = controlSet;
 
                         ce.Executed = AppCompatCache.Execute.Unknown;
 
@@ -146,5 +148,6 @@ namespace AppCompatCache
 
         public List<CacheEntry> Entries { get; }
         public int EntryCount { get; }
+        public int ControlSet { get; }
     }
 }

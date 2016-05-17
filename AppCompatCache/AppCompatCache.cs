@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using NLog;
 using Registry;
 
 namespace AppCompatCache
@@ -47,12 +49,12 @@ namespace AppCompatCache
             Unknown800000 = 0x00800000,
         }
 
-        public AppCompatCache(byte[] rawBytes)
+        public AppCompatCache(byte[] rawBytes, int controlSet)
         {
-            Init(rawBytes, false);
+            Init(rawBytes, false,controlSet);
         }
 
-        public AppCompatCache(string filename)
+        public AppCompatCache(string filename, int controlSet)
         {
             byte[] rawBytes = null;
 
@@ -79,26 +81,63 @@ namespace AppCompatCache
             }
             else
             {
+
+                ControlSet = controlSet;
+
                 if (File.Exists(filename) == false)
                 {
                     throw new FileNotFoundException($"File not found ({filename})!");
                 }
 
                 var hive = new RegistryHiveOnDemand(filename);
+              
                 var subKey = hive.GetKey("Select");
 
-                if (subKey == null)
+                if (controlSet == -1)
                 {
-                    throw new Exception($"'Select' key not found. Is '{filename}' a system hive?");
+                    if (subKey == null)
+                    {
+                        throw new Exception($"'Select' key not found. Is '{filename}' a system hive?");
+                    }
+
+                    ControlSet = int.Parse(subKey.Values.Single(c => c.ValueName == "Current").ValueData);
+              
+                   var sets = new List<int>();
+
+                    for (int i = 0; i < 5; i++)
+                    {
+                        if (i == ControlSet)
+                        {
+                            continue;
+                        }
+
+                        subKey = hive.GetKey($@"ControlSet00{i}\Control\Session Manager\AppCompatCache");
+
+                        if (subKey != null)
+                        {
+                            sets.Add(i);
+                        }
+                    }
+
+                    if (sets.Any())
+                    {
+                        var _log = LogManager.GetCurrentClassLogger();
+
+                        _log.Warn($"***Found the following additional ControlSet00x keys: {string.Join(",",sets)}. Use -c to process these keys\r\n");
+                    }
+                       
                 }
 
-                var currentCtlSet = int.Parse(subKey.Values.Single(c => c.ValueName == "Current").ValueData);
-
-                subKey = hive.GetKey($@"ControlSet00{currentCtlSet}\Control\Session Manager\AppCompatCache");
+                subKey = hive.GetKey($@"ControlSet00{ControlSet}\Control\Session Manager\AppCompatCache");
 
                 if (subKey == null)
                 {
-                    subKey = hive.GetKey($@"ControlSet00{currentCtlSet}\Control\Session Manager\AppCompatibility");
+                    subKey = hive.GetKey($@"ControlSet00{ControlSet}\Control\Session Manager\AppCompatibility");
+                }
+
+                if (subKey == null)
+                {
+                    throw new Exception($"Could not find ControlSet00{ControlSet}. Exiting");
                 }
 
                 var val = subKey?.Values.SingleOrDefault(c => c.ValueName == "AppCompatCache");
@@ -117,8 +156,10 @@ namespace AppCompatCache
 
             var is32 = Is32Bit(filename);
 
-            Init(rawBytes, is32);
+            Init(rawBytes, is32,ControlSet);
         }
+
+        public int ControlSet { get; }
 
         public IAppCompatCache Cache { get; private set; }
         public OperatingSystemVersion OperatingSystem { get; private set; }
@@ -126,7 +167,7 @@ namespace AppCompatCache
         //https://github.com/libyal/winreg-kb/wiki/Application-Compatibility-Cache-key
         //https://dl.mandiant.com/EE/library/Whitepaper_ShimCacheParser.pdf
 
-        private void Init(byte[] rawBytes, bool is32)
+        private void Init(byte[] rawBytes, bool is32, int controlSet)
         {
             IAppCompatCache appCache = null;
             OperatingSystem = OperatingSystemVersion.Unknown;
@@ -140,17 +181,17 @@ namespace AppCompatCache
             if (signature == "\u0018\0\0\0" || signature == "Y\0\0\0")
             {
                 OperatingSystem = OperatingSystemVersion.WindowsXP;
-                appCache = new WindowsXP(rawBytes, is32);
+                appCache = new WindowsXP(rawBytes, is32, controlSet);
             }
             else if (signature == "00ts")
             {
                 OperatingSystem = OperatingSystemVersion.Windows80_Windows2012;
-                appCache = new Windows8x(rawBytes, OperatingSystem);
+                appCache = new Windows8x(rawBytes, OperatingSystem, controlSet);
             }
             else if (signature == "10ts")
             {
                 OperatingSystem = OperatingSystemVersion.Windows81_Windows2012R2;
-                appCache = new Windows8x(rawBytes, OperatingSystem);
+                appCache = new Windows8x(rawBytes, OperatingSystem, controlSet);
             }
             else
             {
@@ -159,7 +200,7 @@ namespace AppCompatCache
                 if (signature == "10ts")
                 {
                     OperatingSystem = OperatingSystemVersion.Windows10;
-                    appCache = new Windows10(rawBytes);
+                    appCache = new Windows10(rawBytes, controlSet);
                 }
                 else
                 {
@@ -175,10 +216,12 @@ namespace AppCompatCache
                             OperatingSystem = OperatingSystemVersion.Windows7x64_Windows2008R2;
                         }
 
-                        appCache = new Windows7(rawBytes, is32);
+                        appCache = new Windows7(rawBytes, is32, controlSet);
                     }
                 }
             }
+
+            
 
             Cache = appCache;
         }
