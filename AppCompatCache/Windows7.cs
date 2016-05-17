@@ -21,6 +21,11 @@ namespace AppCompatCache
 
             var position = 0;
 
+            if (EntryCount == 0)
+            {
+                return;;
+            }
+
             if (is32Bit)
             {
                 while (index < rawBytes.Length)
@@ -56,7 +61,7 @@ namespace AppCompatCache
                         var dataOffset = BitConverter.ToUInt32(rawBytes, index);
                         index += 4;
 
-                        ce.Path = Encoding.Unicode.GetString(rawBytes, pathOffset, ce.PathSize);
+                        ce.Path = Encoding.Unicode.GetString(rawBytes, pathOffset, ce.PathSize).Replace(@"\??\", "");
 
                         if ((ce.InsertFlags & AppCompatCache.InsertFlag.Executed) == AppCompatCache.InsertFlag.Executed)
                         {
@@ -132,7 +137,7 @@ namespace AppCompatCache
                         var dataOffset = BitConverter.ToUInt64(rawBytes, index);
                         index += 8;
 
-                        ce1.Path = Encoding.Unicode.GetString(rawBytes, (int) pathOffset, ce1.PathSize);
+                        ce1.Path = Encoding.Unicode.GetString(rawBytes, (int) pathOffset, ce1.PathSize).Replace(@"\??\", "");
 
                         if ((ce1.InsertFlags & AppCompatCache.InsertFlag.Executed) == AppCompatCache.InsertFlag.Executed)
                         {

@@ -27,7 +27,7 @@ namespace AppCompatCacheTest
         [Test]
         public void OneOff()
         {
-            var foo = File.ReadAllBytes(@"C:\Users\e\Desktop\AppCompatCache_CurrentControlSet002_export.bin");
+            var foo = File.ReadAllBytes(@"C:\Users\e\Desktop\appc\ControlSet002_AppCompatCache_Win7_Enterprise_64-bit_export.bin");
             var a = new Windows7(foo, false, -1);
         }
 

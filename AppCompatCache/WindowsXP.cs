@@ -25,6 +25,11 @@ namespace AppCompatCache
 
             var position = 0;
 
+            if (EntryCount == 0)
+            {
+                return; ;
+            }
+
             if (is32Bit)
             {
                 while (index < rawBytes.Length)
@@ -35,7 +40,7 @@ namespace AppCompatCache
 
                         ce.PathSize = 528;
 
-                        ce.Path = Encoding.Unicode.GetString(rawBytes, index, ce.PathSize).Replace('\0', ' ').Trim();
+                        ce.Path = Encoding.Unicode.GetString(rawBytes, index, ce.PathSize).Replace('\0', ' ').Trim().Replace(@"\??\", "");
                         index += 528;
 
                         ce.LastModifiedTimeUTC =

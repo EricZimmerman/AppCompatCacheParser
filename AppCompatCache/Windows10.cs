@@ -43,7 +43,7 @@ namespace AppCompatCache
 
                     ce.PathSize = BitConverter.ToUInt16(rawBytes, index);
                     index += 2;
-                    ce.Path = Encoding.Unicode.GetString(rawBytes, index, ce.PathSize);
+                    ce.Path = Encoding.Unicode.GetString(rawBytes, index, ce.PathSize).Replace(@"\??\", "");
                     index += ce.PathSize;
 
                     ce.LastModifiedTimeUTC =
