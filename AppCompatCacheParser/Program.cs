@@ -160,7 +160,7 @@ namespace AppCompatCacheParser
 
                 var outFilename = Path.Combine(_fluentCommandLineParser.Object.SaveTo, outFileBase);
 
-                logger.Info($"\r\nResults will be saved to '{outFilename}'\r\n");
+                logger.Info($"Results will be saved to '{outFilename}'\r\n");
 
                 var sw = new StreamWriter(outFilename);
                 sw.AutoFlush = true;
