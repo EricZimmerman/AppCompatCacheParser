@@ -56,7 +56,7 @@ namespace AppCompatCache
                     ce.Data = rawBytes.Skip(index).Take(ce.DataSize).ToArray();
                     index += ce.DataSize;
 
-                    ce.Executed = AppCompatCache.Execute.Unknown;
+                    ce.Executed = AppCompatCache.Execute.NA;
 
                     ce.ControlSet = controlSet;
                     ce.CacheEntryPosition = position;

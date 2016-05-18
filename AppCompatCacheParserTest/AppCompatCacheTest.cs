@@ -39,23 +39,23 @@ namespace AppCompatCacheTest
             Check.That(a.EntryCount).Equals(-1);
 
             Check.That(a.Entries[0].PathSize).IsEqualTo(54);
-            Check.That(a.Entries[0].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.Unknown);
+            Check.That(a.Entries[0].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.NA);
             Check.That(a.Entries[0].Path).Contains("vds.exe");
 
             Check.That(a.Entries[2].PathSize).IsEqualTo(140);
-            Check.That(a.Entries[2].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.Unknown);
+            Check.That(a.Entries[2].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.NA);
             Check.That(a.Entries[2].Path).Contains("DismHost.exe");
 
             Check.That(a.Entries[7].PathSize).IsEqualTo(58);
-            Check.That(a.Entries[7].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.Unknown);
+            Check.That(a.Entries[7].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.NA);
             Check.That(a.Entries[7].Path).Contains("mstsc.exe");
 
             Check.That(a.Entries[337].PathSize).IsEqualTo(112);
-            Check.That(a.Entries[337].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.Unknown);
+            Check.That(a.Entries[337].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.NA);
             Check.That(a.Entries[337].Path).Contains("Ngen.exe");
 
             Check.That(a.Entries[349].PathSize).IsEqualTo(64);
-            Check.That(a.Entries[349].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.Unknown);
+            Check.That(a.Entries[349].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.NA);
             Check.That(a.Entries[349].Path).Contains("services.exe");
         }
 

@@ -15,7 +15,7 @@ namespace AppCompatCache
         {
             Yes,
             No,
-            Unknown
+            NA
         }
 
         [Flags]
@@ -123,7 +123,7 @@ namespace AppCompatCache
                     }
                 }
 
-                if (controlSetIds.Any())
+                if (controlSetIds.Count > 1)
                 {
                     var log = LogManager.GetCurrentClassLogger();
 

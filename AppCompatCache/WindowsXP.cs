@@ -63,7 +63,7 @@ namespace AppCompatCache
                         ce.CacheEntryPosition = position;
                         ce.ControlSet = controlSet;
 
-                        ce.Executed = AppCompatCache.Execute.Unknown;
+                        ce.Executed = AppCompatCache.Execute.NA;
 
                         Entries.Add(ce);
                         position += 1;

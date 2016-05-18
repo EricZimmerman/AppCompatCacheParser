@@ -162,8 +162,11 @@ namespace AppCompatCacheParser
 
                 logger.Info($"Results will be saved to '{outFilename}'\r\n");
 
-                var sw = new StreamWriter(outFilename);
-                sw.AutoFlush = true;
+                var sw = new StreamWriter(outFilename)
+                {
+                    AutoFlush = true
+                
+                };
                 var csv = new CsvWriter(sw);
 
                 csv.Configuration.RegisterClassMap(new CacheOutputMap(_fluentCommandLineParser.Object.DateTimeFormat));
@@ -175,17 +178,8 @@ namespace AppCompatCacheParser
                 {
                     foreach (var appCompatCach in appCompat.Caches)
                     {
-                        if (appCompatCach.ControlSet == -1)
-                        {
-                            logger.Info(
-                                $"Found {appCompatCach.Entries.Count:N0} cache entries for {appCompat.OperatingSystem} in CurrentControlSet");
-                        }
-                        else
-                        {
                             logger.Info(
                                 $"Found {appCompatCach.Entries.Count:N0} cache entries for {appCompat.OperatingSystem} in ControlSet00{appCompatCach.ControlSet}");
-                        }
-
 
                         if (_fluentCommandLineParser.Object.SortTimestamps)
                         {
@@ -204,13 +198,6 @@ namespace AppCompatCacheParser
             {
                 logger.Error($"There was an error: Error message: {ex.Message}");
             }
-
-
-#if DEBUG
-            logger.Info("");
-            logger.Info("Press a key to exit");
-            Console.ReadKey();
-#endif
         }
     }
 
