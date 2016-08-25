@@ -117,6 +117,11 @@ namespace AppCompatCache
                 {
                     subKey = hive.GetKey($@"ControlSet00{i}\Control\Session Manager\AppCompatCache");
 
+                    if (subKey == null)
+                    {
+                        subKey = hive.GetKey($@"ControlSet00{i}\Control\Session Manager\AppCompatibility");
+                    }
+
                     if (subKey != null)
                     {
                         controlSetIds.Add(i);
