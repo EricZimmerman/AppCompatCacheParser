@@ -157,21 +157,34 @@ namespace AppCompatCache
 
             var is32 = Is32Bit(filename);
 
+            var log1 = LogManager.GetCurrentClassLogger();
+
+            log1.Debug($@"**** Found {controlSetIds.Count} ids to process");
+
+
             foreach (var id in controlSetIds)
             {
+                log1.Debug($@"**** Processing id {id}");
+
                 var hive2 = new RegistryHiveOnDemand(filename);
 
                 subKey = hive2.GetKey($@"ControlSet00{id}\Control\Session Manager\AppCompatCache");
 
+
+
                 if (subKey == null)
                 {
+                    log1.Debug($@"**** Initial subkey null, getting appCompatability key");
                     subKey = hive2.GetKey($@"ControlSet00{id}\Control\Session Manager\AppCompatibility");
                 }
+
+                log1.Debug($@"**** Looking  AppCompatcache value");
 
                 var val = subKey?.Values.SingleOrDefault(c => c.ValueName == "AppCompatCache");
 
                 if (val != null)
                 {
+                    log1.Debug($@"**** Found AppCompatcache value");
                     rawBytes = val.ValueDataRaw;
                 }
 
@@ -203,13 +216,24 @@ namespace AppCompatCache
 
             string signature;
 
+
             //TODO check minimum length of rawBytes and throw exception if not enough data
 
             signature = Encoding.ASCII.GetString(rawBytes, 128, 4);
 
-            if (signature == "\u0018\0\0\0" || signature == "Y\0\0\0")
+            var log1 = LogManager.GetCurrentClassLogger();
+            log1.Debug($@"**** Signature {signature}");
+
+            if (signature.Contains("ts") == false) //signature == "\u0018\0\0\0" || signature == "Y\0\0\0"
             {
                 OperatingSystem = OperatingSystemVersion.WindowsXP;
+
+                
+
+                log1.Debug($@"**** Processing XP hive");
+
+
+
                 appCache = new WindowsXP(rawBytes, is32, controlSet);
             }
             else if (signature == "00ts")

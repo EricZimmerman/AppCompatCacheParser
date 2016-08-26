@@ -3,13 +3,14 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using AppCompatCache;
-using CsvHelper;
 using CsvHelper.Configuration;
 using Fclp;
 using Microsoft.Win32;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using ServiceStack.Text;
+using CsvWriter = CsvHelper.CsvWriter;
 
 namespace AppCompatCacheParser
 {
@@ -84,6 +85,11 @@ namespace AppCompatCacheParser
                 .WithDescription("The ControlSet to parse. Default is to detect the current control set.")
                 .SetDefault(-1);
 
+            _fluentCommandLineParser.Setup(arg => arg.Debug)
+                .As('d')
+                .WithDescription("Debug mode")
+                .SetDefault(false);
+
             _fluentCommandLineParser.Setup(arg => arg.DateTimeFormat)
                 .As("dt")
                 .WithDescription(
@@ -128,6 +134,11 @@ namespace AppCompatCacheParser
 
             logger.Info("");
 
+            if (_fluentCommandLineParser.Object.Debug)
+            {
+                LogManager.Configuration.LoggingRules.First().EnableLoggingForLevel(LogLevel.Debug);
+            }
+
             try
             {
                 var appCompat = new AppCompatCache.AppCompatCache(_fluentCommandLineParser.Object.HiveFile,
@@ -165,7 +176,7 @@ namespace AppCompatCacheParser
                 var sw = new StreamWriter(outFilename)
                 {
                     AutoFlush = true
-                
+
                 };
                 var csv = new CsvWriter(sw);
 
@@ -174,21 +185,49 @@ namespace AppCompatCacheParser
 
                 csv.WriteHeader<CacheEntry>();
 
+                logger.Debug($"**** Found {appCompat.Caches.Count} caches");
+
                 if (appCompat.Caches.Any())
                 {
                     foreach (var appCompatCach in appCompat.Caches)
                     {
+                        if (_fluentCommandLineParser.Object.Debug)
+                        {
+                            appCompatCach.PrintDump();
+                        }
+                        
+
+                        try
+                        {
+
                             logger.Info(
                                 $"Found {appCompatCach.Entries.Count:N0} cache entries for {appCompat.OperatingSystem} in ControlSet00{appCompatCach.ControlSet}");
 
-                        if (_fluentCommandLineParser.Object.SortTimestamps)
-                        {
-                            csv.WriteRecords(appCompatCach.Entries.OrderByDescending(t => t.LastModifiedTimeUTC));
+                            if (_fluentCommandLineParser.Object.SortTimestamps)
+                            {
+                                csv.WriteRecords(appCompatCach.Entries.OrderByDescending(t => t.LastModifiedTimeUTC));
+                            }
+                            else
+                            {
+                                csv.WriteRecords(appCompatCach.Entries);
+                            }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            csv.WriteRecords(appCompatCach.Entries);
+                            logger.Error($"There was an error: Error message: {ex.Message} Stack: {ex.StackTrace}");
+
+                            try
+                            {
+                                appCompatCach.PrintDump();
+                            }
+                            catch (Exception ex1)
+                            {
+                                logger.Error($"Couldnt PrintDump {ex.Message} Stack: {ex.StackTrace}");
+
+                            }
+
                         }
+
                     }
 
                     sw.Close();
@@ -196,7 +235,7 @@ namespace AppCompatCacheParser
             }
             catch (Exception ex)
             {
-                logger.Error($"There was an error: Error message: {ex.Message}");
+                logger.Error($"There was an error: Error message: {ex.Message} Stack: {ex.StackTrace}");
             }
         }
     }
@@ -208,6 +247,8 @@ namespace AppCompatCacheParser
         public bool SortTimestamps { get; set; }
         public int ControlSet { get; set; }
         public string SaveTo { get; set; }
+
+        public bool Debug { get; set; }
 
         public string DateTimeFormat { get; set; }
     }

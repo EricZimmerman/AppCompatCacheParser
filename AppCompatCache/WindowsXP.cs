@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using NLog;
 
@@ -25,9 +26,15 @@ namespace AppCompatCache
 
             var position = 0;
 
+            var log1 = LogManager.GetCurrentClassLogger();
+
+            log1.Debug($@"**** 32 bit system?: {is32Bit}");
+
+            log1.Debug($@"**** EntryCount found: {EntryCount}");
+
             if (EntryCount == 0)
             {
-                return; ;
+                return; 
             }
 
             if (is32Bit)
@@ -36,11 +43,13 @@ namespace AppCompatCache
                 {
                     try
                     {
+                        log1.Debug($@"**** At index position: {index}");
+
                         var ce = new CacheEntry();
 
                         ce.PathSize = 528;
 
-                        ce.Path = Encoding.Unicode.GetString(rawBytes, index, ce.PathSize).Replace('\0', ' ').Trim().Replace(@"\??\", "");
+                        ce.Path = Encoding.Unicode.GetString(rawBytes, index, ce.PathSize).Split('\0').First().Replace('\0', ' ').Trim().Replace(@"\??\", "");
                         index += 528;
 
                         ce.LastModifiedTimeUTC =
@@ -64,6 +73,8 @@ namespace AppCompatCache
                         ce.ControlSet = controlSet;
 
                         ce.Executed = AppCompatCache.Execute.NA;
+
+                        log1.Debug($@"**** Adding cache entry for '{ce.Path}' to Entries");
 
                         Entries.Add(ce);
                         position += 1;
