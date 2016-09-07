@@ -66,6 +66,7 @@
     <None Include="TestFiles\win7x86.bin" />
     <None Include="TestFiles\Win80.bin" />
     <None Include="TestFiles\Win81.bin" />
+    <None Include="TestFiles\WinXPx86.bin" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="TestFiles\ReadMe.txt" />

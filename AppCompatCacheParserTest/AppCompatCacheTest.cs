@@ -16,6 +16,7 @@ namespace AppCompatCacheTest
             Win80 = File.ReadAllBytes(@"..\..\TestFiles\Win80.bin");
             Win81 = File.ReadAllBytes(@"..\..\TestFiles\Win81.bin");
             Win10 = File.ReadAllBytes(@"..\..\TestFiles\Win10.bin");
+            WinXp = File.ReadAllBytes(@"..\..\TestFiles\WinXPx86.bin");
         }
 
         public byte[] Win7X86;
@@ -23,13 +24,14 @@ namespace AppCompatCacheTest
         public byte[] Win80;
         public byte[] Win81;
         public byte[] Win10;
+        public byte[] WinXp;
 
-        [Test]
+      /*  [Test]
         public void OneOff()
         {
             var foo = File.ReadAllBytes(@"C:\Users\e\Desktop\appc\ControlSet002_AppCompatCache_Win7_Enterprise_64-bit_export.bin");
             var a = new Windows7(foo, false, -1);
-        }
+        }*/
 
         [Test]
         public void Win10ShouldFindEntries()
@@ -85,6 +87,26 @@ namespace AppCompatCacheTest
             Check.That(a.Entries[301].PathSize).IsEqualTo(62);
             Check.That(a.Entries[301].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.Yes);
             Check.That(a.Entries[301].Path).Contains("reg.exe");
+        }
+
+
+        [Test]
+        public void WinXpx86ShouldFindEntries()
+        {
+            var a = new WindowsXP(WinXp, true, -1);
+            Check.That(a.Entries.Count).Equals(17);
+            Check.That(a.EntryCount).Equals(96);
+
+            Check.That(a.Entries[0].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.NA);
+            Check.That(a.Entries[0].Path).Contains("msoobe.exe");
+
+            Check.That(a.Entries[2].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.NA);
+            Check.That(a.Entries[2].Path).Contains("agentsvr.exe");
+
+            Check.That(a.Entries[8].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.NA);
+            Check.That(a.Entries[8].Path).Contains("NETSHELL.dll");
+
+          
         }
 
         [Test]

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -217,25 +218,38 @@ namespace AppCompatCache
             string signature;
 
 
+            var sigNum = BitConverter.ToUInt32(rawBytes, 0);
+
+
             //TODO check minimum length of rawBytes and throw exception if not enough data
 
             signature = Encoding.ASCII.GetString(rawBytes, 128, 4);
 
             var log1 = LogManager.GetCurrentClassLogger();
-            log1.Debug($@"**** Signature {signature}");
+            log1.Debug($@"**** Signature {signature}, Sig num 0x{sigNum:X}");
 
-            if (signature.Contains("ts") == false) //signature == "\u0018\0\0\0" || signature == "Y\0\0\0"
+            if (sigNum == 0xDEADBEEF) //DEADBEEF, WinXp
             {
                 OperatingSystem = OperatingSystemVersion.WindowsXP;
-
                 
-
-                log1.Debug($@"**** Processing XP hive");
-
-
-
+                log1.Debug(@"**** Processing XP hive");
+                
                 appCache = new WindowsXP(rawBytes, is32, controlSet);
             }
+            else if (sigNum == 0xBADC0FEE) //BADC0FEE, Win7
+            {
+                if (is32)
+                {
+                    OperatingSystem = OperatingSystemVersion.Windows7x86;
+                }
+                else
+                {
+                    OperatingSystem = OperatingSystemVersion.Windows7x64_Windows2008R2;
+                }
+
+                appCache = new Windows7(rawBytes, is32, controlSet);
+            }
+
             else if (signature == "00ts")
             {
                 OperatingSystem = OperatingSystemVersion.Windows80_Windows2012;
@@ -255,23 +269,12 @@ namespace AppCompatCache
                     OperatingSystem = OperatingSystemVersion.Windows10;
                     appCache = new Windows10(rawBytes, controlSet);
                 }
-                else
-                {
-                    //win7
-                    if (rawBytes[0] == 0xee & rawBytes[1] == 0xf & rawBytes[2] == 0xdc & rawBytes[3] == 0xba)
-                    {
-                        if (is32)
-                        {
-                            OperatingSystem = OperatingSystemVersion.Windows7x86;
-                        }
-                        else
-                        {
-                            OperatingSystem = OperatingSystemVersion.Windows7x64_Windows2008R2;
-                        }
+              
+            }
 
-                        appCache = new Windows7(rawBytes, is32, controlSet);
-                    }
-                }
+            if (appCache == null)
+            {
+                throw new Exception("Unable to determine operating system! Please send the hive to saericzimmerman@gmail.com");
             }
 
 
