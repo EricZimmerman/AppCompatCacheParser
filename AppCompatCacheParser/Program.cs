@@ -82,7 +82,7 @@ namespace AppCompatCacheParser
 
             _fluentCommandLineParser.Setup(arg => arg.ControlSet)
                 .As('c')
-                .WithDescription("The ControlSet to parse. Default is to detect the current control set.")
+                .WithDescription("The ControlSet to parse. Default is to extract all control sets.")
                 .SetDefault(-1);
 
             _fluentCommandLineParser.Setup(arg => arg.Debug)
