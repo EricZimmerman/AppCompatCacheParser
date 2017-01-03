@@ -45,9 +45,8 @@ namespace AppCompatCache
                     {
                         log1.Debug($@"**** At index position: {index}");
 
-                        var ce = new CacheEntry();
+                        var ce = new CacheEntry {PathSize = 528};
 
-                        ce.PathSize = 528;
 
                         ce.Path = Encoding.Unicode.GetString(rawBytes, index, ce.PathSize).Split('\0').First().Replace('\0', ' ').Trim().Replace(@"\??\", "");
                         index += 528;
@@ -103,63 +102,62 @@ namespace AppCompatCache
             {
                 throw new Exception(
                     "64 bit XP support not available. send the hive to saericzimmerman@gmail.com so support can be added");
-                while (index < rawBytes.Length)
-                {
-                    try
-                    {
-                        var ce = new CacheEntry();
-
-                        ce.PathSize = BitConverter.ToUInt16(rawBytes, index);
-                        index += 2;
-
-                        var maxPathSize = BitConverter.ToUInt16(rawBytes, index);
-                        index += 2;
-
-
-                        var pathOffset = BitConverter.ToInt32(rawBytes, index);
-                        index += 4;
-
-                        ce.LastModifiedTimeUTC =
-                            DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
-                        index += 8;
-
-                        // skip 4 unknown (insertion flags?)
-                        index += 4;
-
-                        // skip 4 unknown (shim flags?)
-                        index += 4;
-
-                        var ceDataSize = BitConverter.ToUInt32(rawBytes, index);
-                        index += 4;
-
-                        var dataOffset = BitConverter.ToUInt32(rawBytes, index);
-                        index += 4;
-
-                        ce.Path = Encoding.Unicode.GetString(rawBytes, pathOffset, ce.PathSize);
-
-                        if (ce.LastModifiedTimeUTC.Year == 1601)
-                        {
-                            break;
-                        }
-
-                        ce.CacheEntryPosition = position;
-                        Entries.Add(ce);
-                        position += 1;
-
-
-                        if (Entries.Count == EntryCount)
-                        {
-                            break;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        //TODO Report this
-                        Debug.WriteLine(ex.Message);
-                        //take what we can get
-                        break;
-                    }
-                }
+//                while (index < rawBytes.Length)
+//                {
+//                    try
+//                    {
+//                        var ce = new CacheEntry {PathSize = BitConverter.ToUInt16(rawBytes, index)};
+//
+//                        index += 2;
+//
+//                        var maxPathSize = BitConverter.ToUInt16(rawBytes, index);
+//                        index += 2;
+//
+//
+//                        var pathOffset = BitConverter.ToInt32(rawBytes, index);
+//                        index += 4;
+//
+//                        ce.LastModifiedTimeUTC =
+//                            DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
+//                        index += 8;
+//
+//                        // skip 4 unknown (insertion flags?)
+//                        index += 4;
+//
+//                        // skip 4 unknown (shim flags?)
+//                        index += 4;
+//
+//                        var ceDataSize = BitConverter.ToUInt32(rawBytes, index);
+//                        index += 4;
+//
+//                        var dataOffset = BitConverter.ToUInt32(rawBytes, index);
+//                        index += 4;
+//
+//                        ce.Path = Encoding.Unicode.GetString(rawBytes, pathOffset, ce.PathSize);
+//
+//                        if (ce.LastModifiedTimeUTC.Year == 1601)
+//                        {
+//                            break;
+//                        }
+//
+//                        ce.CacheEntryPosition = position;
+//                        Entries.Add(ce);
+//                        position += 1;
+//
+//
+//                        if (Entries.Count == EntryCount)
+//                        {
+//                            break;
+//                        }
+//                    }
+//                    catch (Exception ex)
+//                    {
+//                        //TODO Report this
+//                        Debug.WriteLine(ex.Message);
+//                        //take what we can get
+//                        break;
+//                    }
+//                }
             }
         }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using AppCompatCache;
 using CsvHelper.Configuration;
+using Exceptionless;
 using Fclp;
 using Microsoft.Win32;
 using NLog;
@@ -52,6 +53,7 @@ namespace AppCompatCacheParser
 
         private static void Main(string[] args)
         {
+            ExceptionlessClient.Default.Startup("7iL4b0Me7W8PbFflftqWgfQCIdf55flrT2O11zIP");
             SetupNLog();
 
             var logger = LogManager.GetCurrentClassLogger();
@@ -65,19 +67,19 @@ namespace AppCompatCacheParser
             _fluentCommandLineParser = new FluentCommandLineParser<ApplicationArguments>();
 
             _fluentCommandLineParser.Setup(arg => arg.SaveTo)
-                .As('s')
-                .WithDescription("(REQUIRED) Directory to save results")
+                .As("csv")
+                .WithDescription("Directory to save results. Required")
                 .Required();
 
             _fluentCommandLineParser.Setup(arg => arg.HiveFile)
-                .As('h')
+                .As('f')
                 .WithDescription(
-                    "Full path to SYSTEM hive file to process. If this option is not specified, the live Registry will be used")
+                    "Full path to SYSTEM hive to process. If this option is not specified, the live Registry will be used")
                 .SetDefault(string.Empty);
 
             _fluentCommandLineParser.Setup(arg => arg.SortTimestamps)
                 .As('t')
-                .WithDescription("Sorts timestamps in descending order")
+                .WithDescription("Sorts last modified timestamps in descending order\r\n")
                 .SetDefault(false);
 
             _fluentCommandLineParser.Setup(arg => arg.ControlSet)
@@ -93,16 +95,20 @@ namespace AppCompatCacheParser
             _fluentCommandLineParser.Setup(arg => arg.DateTimeFormat)
                 .As("dt")
                 .WithDescription(
-                    "The custom date/time format to use when displaying time stamps. Default is: yyyy-MM-dd HH:mm:ss K")
-                .SetDefault("yyyy-MM-dd HH:mm:ss K");
+                    "The custom date/time format to use when displaying timestamps. See https://goo.gl/CNVq0k for options. Default is: yyyy-MM-dd HH:mm:ss")
+                .SetDefault("yyyy-MM-dd HH:mm:ss");
 
             var header =
                 $"AppCompatCache Parser version {Assembly.GetExecutingAssembly().GetName().Version}" +
                 $"\r\n\r\nAuthor: Eric Zimmerman (saericzimmerman@gmail.com)" +
                 $"\r\nhttps://github.com/EricZimmerman/AppCompatCacheParser";
 
+            var footer = @"Examples: AppCompatCacheParser.exe --csv c:\temp -t -c 2" + "\r\n\t " +
+                         "\r\n\t" +
+                         "  Short options (single letter) are prefixed with a single dash. Long commands are prefixed with two dashes\r\n";
 
-            _fluentCommandLineParser.SetupHelp("?", "help").WithHeader(header).Callback(text => logger.Info(text));
+
+            _fluentCommandLineParser.SetupHelp("?", "help").WithHeader(header).Callback(text => logger.Info(text + "\r\n" + footer));
 
             var result = _fluentCommandLineParser.Parse(args);
 
@@ -115,8 +121,7 @@ namespace AppCompatCacheParser
             {
                 _fluentCommandLineParser.HelpOption.ShowHelp(_fluentCommandLineParser.Options);
 
-                logger.Info(
-                    @"Example: AppCompatCacheParser.exe -s c:\temp -t -c 2");
+        
                 return;
             }
 
@@ -171,8 +176,6 @@ namespace AppCompatCacheParser
 
                 var outFilename = Path.Combine(_fluentCommandLineParser.Object.SaveTo, outFileBase);
 
-                logger.Info($"Results will be saved to '{outFilename}'\r\n");
-
                 var sw = new StreamWriter(outFilename)
                 {
                     AutoFlush = true
@@ -222,7 +225,7 @@ namespace AppCompatCacheParser
                             }
                             catch (Exception ex1)
                             {
-                                logger.Error($"Couldnt PrintDump {ex.Message} Stack: {ex.StackTrace}");
+                                logger.Error($"Couldn't PrintDump {ex1.Message} Stack: {ex1.StackTrace}");
 
                             }
 
@@ -231,7 +234,14 @@ namespace AppCompatCacheParser
                     }
 
                     sw.Close();
+
+                    logger.Warn($"\r\nResults saved to '{outFilename}'\r\n");
                 }
+                else
+                {
+                    logger.Warn($"\r\nNo caches were found!\r\n");
+                }
+                
             }
             catch (Exception ex)
             {
