@@ -43,6 +43,7 @@ namespace AppCompatCache
         public enum OperatingSystemVersion
         {
             WindowsXP,
+            WindowsVistaWin2k3Win2k8,
             Windows7x86,
             Windows7x64_Windows2008R2,
             Windows80_Windows2012,
@@ -235,6 +236,12 @@ namespace AppCompatCache
                 log1.Debug(@"**** Processing XP hive");
                 
                 appCache = new WindowsXP(rawBytes, is32, controlSet);
+            }
+            else if (sigNum == 0xbadc0ffe)
+            {
+                OperatingSystem = OperatingSystemVersion.WindowsVistaWin2k3Win2k8;
+                appCache = new VistaWin2k3Win2k8(rawBytes,is32,controlSet);   
+
             }
             else if (sigNum == 0xBADC0FEE) //BADC0FEE, Win7
             {

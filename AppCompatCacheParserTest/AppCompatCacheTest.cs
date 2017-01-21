@@ -26,12 +26,15 @@ namespace AppCompatCacheTest
         public byte[] Win10;
         public byte[] WinXp;
 
-      /*  [Test]
+        [Test]
         public void OneOff()
         {
-            var foo = File.ReadAllBytes(@"C:\Users\e\Desktop\appc\ControlSet002_AppCompatCache_Win7_Enterprise_64-bit_export.bin");
-            var a = new Windows7(foo, false, -1);
-        }*/
+            var foo = File.ReadAllBytes(@"D:\Temp\Win2003SP2.bin");
+            var a = new VistaWin2k3Win2k8(foo, true, -1);
+        }
+
+
+
 
         [Test]
         public void Win10ShouldFindEntries()
