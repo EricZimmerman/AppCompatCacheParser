@@ -54,23 +54,17 @@ namespace AppCompatCache
 
                         // skip 4 unknown (shim flags?)
                         index += 4;
-//
-//                        var ceDataSize = BitConverter.ToUInt32(rawBytes, index);
-//                        index += 4;
-//
-//                        var dataOffset = BitConverter.ToUInt32(rawBytes, index);
-//                        index += 4;
 
                         ce.Path = Encoding.Unicode.GetString(rawBytes, pathOffset, ce.PathSize).Replace(@"\??\", "");
 
-                        if ((ce.InsertFlags & AppCompatCache.InsertFlag.Executed) == AppCompatCache.InsertFlag.Executed)
-                        {
-                            ce.Executed = AppCompatCache.Execute.Yes;
-                        }
-                        else
-                        {
-                            ce.Executed = AppCompatCache.Execute.No;
-                        }
+//                        if ((ce.InsertFlags & AppCompatCache.InsertFlag.Executed) == AppCompatCache.InsertFlag.Executed)
+//                        {
+//                            ce.Executed = AppCompatCache.Execute.Yes;
+//                        }
+//                        else
+//                        {
+//                            ce.Executed = AppCompatCache.Execute.No;
+//                        }
 
                         ce.Executed = AppCompatCache.Execute.NA;
 
