@@ -12,7 +12,20 @@ namespace AppCompatCache
         {
             Entries = new List<CacheEntry>();
 
-            var index = 48;
+            var totalEntries = 0;
+
+            var ver = BitConverter.ToInt32(rawBytes, 0);
+            var i = 48;
+
+            totalEntries = BitConverter.ToInt32(rawBytes, 24);
+
+            if (ver == 0x34)
+            {
+                i = 52;
+                totalEntries = BitConverter.ToInt32(rawBytes, 28);
+            }
+
+            var index = i;
             ControlSet = controlSet;
 
             EntryCount = -1;

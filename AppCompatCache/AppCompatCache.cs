@@ -49,6 +49,7 @@ namespace AppCompatCache
             Windows80_Windows2012,
             Windows81_Windows2012R2,
             Windows10,
+            Windows10Creators,
             Unknown
         }
 
@@ -270,10 +271,22 @@ namespace AppCompatCache
             else
             {
                 //is it windows 10?
-                signature = Encoding.ASCII.GetString(rawBytes, 48, 4);
+
+                var ver = BitConverter.ToInt32(rawBytes, 0);
+                var i = 48;
+
+                OperatingSystem = OperatingSystemVersion.Windows10;
+
+                if (ver == 0x34)
+                {
+                    i = 52;
+                    OperatingSystem = OperatingSystemVersion.Windows10Creators;
+                }
+
+                signature = Encoding.ASCII.GetString(rawBytes, i, 4);
                 if (signature == "10ts")
                 {
-                    OperatingSystem = OperatingSystemVersion.Windows10;
+                    
                     appCache = new Windows10(rawBytes, controlSet);
                 }
               

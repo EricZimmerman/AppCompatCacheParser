@@ -16,6 +16,7 @@ namespace AppCompatCacheTest
             Win80 = File.ReadAllBytes(@"..\..\TestFiles\Win80.bin");
             Win81 = File.ReadAllBytes(@"..\..\TestFiles\Win81.bin");
             Win10 = File.ReadAllBytes(@"..\..\TestFiles\Win10.bin");
+            Win10Creators = File.ReadAllBytes(@"..\..\TestFiles\Win10Creators.bin");
             WinXp = File.ReadAllBytes(@"..\..\TestFiles\WinXPx86.bin");
         }
 
@@ -24,17 +25,44 @@ namespace AppCompatCacheTest
         public byte[] Win80;
         public byte[] Win81;
         public byte[] Win10;
+        public byte[] Win10Creators;
         public byte[] WinXp;
 
+//        [Test]
+//        public void OneOff()
+//        {
+//            var foo = File.ReadAllBytes(@"D:\Temp\Win2003SP2.bin");
+//            var a = new VistaWin2k3Win2k8(foo, true, -1);
+//        }
+
+
         [Test]
-        public void OneOff()
+        public void Win10_CreatorsShouldFindEntries()
         {
-            var foo = File.ReadAllBytes(@"D:\Temp\Win2003SP2.bin");
-            var a = new VistaWin2k3Win2k8(foo, true, -1);
+            var a = new Windows10(Win10Creators, -1);
+            Check.That(a.Entries.Count).Equals(506);
+            Check.That(a.EntryCount).Equals(-1);
+
+            Check.That(a.Entries[0].PathSize).IsEqualTo(126);
+            Check.That(a.Entries[0].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.NA);
+            Check.That(a.Entries[0].Path).Contains("nvstreg.exe");
+
+            Check.That(a.Entries[2].PathSize).IsEqualTo(62);
+            Check.That(a.Entries[2].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.NA);
+            Check.That(a.Entries[2].Path).Contains("grpconv.exe");
+
+            Check.That(a.Entries[7].PathSize).IsEqualTo(166);
+            Check.That(a.Entries[7].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.NA);
+            Check.That(a.Entries[7].Path).Contains("ISBEW64.exe");
+
+            Check.That(a.Entries[337].PathSize).IsEqualTo(64);
+            Check.That(a.Entries[337].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.NA);
+            Check.That(a.Entries[337].Path).Contains("wsqmcons.exe");
+
+            Check.That(a.Entries[349].PathSize).IsEqualTo(56);
+            Check.That(a.Entries[349].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.NA);
+            Check.That(a.Entries[349].Path).Contains("SLUI.exe");
         }
-
-
-
 
         [Test]
         public void Win10ShouldFindEntries()

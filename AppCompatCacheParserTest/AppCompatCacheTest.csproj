@@ -62,6 +62,7 @@
     <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="TestFiles\Win10.bin" />
+    <None Include="TestFiles\Win10Creators.bin" />
     <None Include="TestFiles\win7x64.bin" />
     <None Include="TestFiles\win7x86.bin" />
     <None Include="TestFiles\Win80.bin" />
