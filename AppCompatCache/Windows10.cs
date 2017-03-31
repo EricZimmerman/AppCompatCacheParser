@@ -8,24 +8,24 @@ namespace AppCompatCache
 {
     public class Windows10 : IAppCompatCache
     {
+        public int ExpectedEntries { get; }
+
         public Windows10(byte[] rawBytes, int controlSet)
         {
             Entries = new List<CacheEntry>();
 
-            var totalEntries = 0;
+            ExpectedEntries = 0;
 
-            var ver = BitConverter.ToInt32(rawBytes, 0);
-            var i = 48;
+            var offsetToRecords = BitConverter.ToInt32(rawBytes, 0);
 
-            totalEntries = BitConverter.ToInt32(rawBytes, 24);
+            ExpectedEntries = BitConverter.ToInt32(rawBytes, 0x24);
 
-            if (ver == 0x34)
+            if (offsetToRecords == 0x34)
             {
-                i = 52;
-                totalEntries = BitConverter.ToInt32(rawBytes, 28);
+                ExpectedEntries = BitConverter.ToInt32(rawBytes, 0x28);
             }
 
-            var index = i;
+            var index = offsetToRecords;
             ControlSet = controlSet;
 
             EntryCount = -1;

@@ -41,6 +41,7 @@ namespace AppCompatCacheTest
         {
             var a = new Windows10(Win10Creators, -1);
             Check.That(a.Entries.Count).Equals(506);
+            Check.That(a.ExpectedEntries).Equals(a.Entries.Count);
             Check.That(a.EntryCount).Equals(-1);
 
             Check.That(a.Entries[0].PathSize).IsEqualTo(126);
@@ -69,6 +70,7 @@ namespace AppCompatCacheTest
         {
             var a = new Windows10(Win10, -1);
             Check.That(a.Entries.Count).Equals(350);
+            Check.That(a.ExpectedEntries).Equals(a.Entries.Count);
             Check.That(a.EntryCount).Equals(-1);
 
             Check.That(a.Entries[0].PathSize).IsEqualTo(54);
