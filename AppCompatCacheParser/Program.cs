@@ -272,6 +272,7 @@ namespace AppCompatCacheParser
             Map(m => m.Path);
             Map(m => m.LastModifiedTimeUTC).TypeConverterOption(dateformat);
             Map(m => m.Executed);
+     //       Map(m => m.LastModifiedFILETIMEUTC);
         }
     }
 }

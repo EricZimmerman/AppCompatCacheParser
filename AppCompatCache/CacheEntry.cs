@@ -11,6 +11,7 @@ namespace AppCompatCache
         public AppCompatCache.Execute Executed { get; set; }
         public int DataSize { get; set; }
         public DateTimeOffset LastModifiedTimeUTC { get; set; }
+        public long LastModifiedFILETIMEUTC => LastModifiedTimeUTC.ToFileTime();
         public string Path { get; set; }
         public int PathSize { get; set; }
         public string Signature { get; set; }
