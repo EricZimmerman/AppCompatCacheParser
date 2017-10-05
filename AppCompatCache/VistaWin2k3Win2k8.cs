@@ -98,7 +98,7 @@ namespace AppCompatCache
             }
             else
             {
-                throw new Exception("Send this hive to Eric Zimmerman so support can be added. saericzimmerman@gmail.com");
+                
                 while (index < rawBytes.Length)
                 {
                     try
@@ -128,11 +128,11 @@ namespace AppCompatCache
                         // skip 4 unknown (shim flags?)
                         index += 4;
 
-                        var ceDataSize = BitConverter.ToUInt64(rawBytes, index);
-                        index += 8;
-
-                        var dataOffset = BitConverter.ToUInt64(rawBytes, index);
-                        index += 8;
+//                        var ceDataSize = BitConverter.ToUInt64(rawBytes, index);
+//                        index += 8;
+//
+//                        var dataOffset = BitConverter.ToUInt64(rawBytes, index);
+//                        index += 8;
 
                         ce1.Path = Encoding.Unicode.GetString(rawBytes, (int)pathOffset, ce1.PathSize).Replace(@"\??\", "");
 

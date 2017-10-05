@@ -18,6 +18,7 @@ namespace AppCompatCacheTest
             Win10 = File.ReadAllBytes(@"..\..\TestFiles\Win10.bin");
             Win10Creators = File.ReadAllBytes(@"..\..\TestFiles\Win10Creators.bin");
             WinXp = File.ReadAllBytes(@"..\..\TestFiles\WinXPx86.bin");
+            Win2k8Std = File.ReadAllBytes(@"..\..\TestFiles\Win2k8Standard.bin");
         }
 
         public byte[] Win7X86;
@@ -27,14 +28,43 @@ namespace AppCompatCacheTest
         public byte[] Win10;
         public byte[] Win10Creators;
         public byte[] WinXp;
+        public byte[] Win2k8Std;
 
-//        [Test]
-//        public void OneOff()
-//        {
-//            var foo = File.ReadAllBytes(@"D:\Temp\Win2003SP2.bin");
-//            var a = new VistaWin2k3Win2k8(foo, true, -1);
-//        }
+        //        [Test]
+        //        public void OneOff()
+        //        {
+        //            var foo = File.ReadAllBytes(@"D:\Temp\Win2003SP2.bin");
+        //            var a = new VistaWin2k3Win2k8(foo, true, -1);
+        //        }
 
+        [Test]
+        public void Win2k8Std_ShouldFindEntries()
+        {
+            var a = new VistaWin2k3Win2k8(Win2k8Std, false, -1);
+            Check.That(a.Entries.Count).Equals(873);
+         //   Check.That(a.ExpectedEntries).Equals(a.Entries.Count);
+            Check.That(a.EntryCount).Equals(873);
+
+            Check.That(a.Entries[0].PathSize).IsEqualTo(164);
+            Check.That(a.Entries[0].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.Yes);
+            Check.That(a.Entries[0].Path).Contains("raw_agent_svc.exe");
+
+            Check.That(a.Entries[2].PathSize).IsEqualTo(62);
+            Check.That(a.Entries[2].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.Yes);
+            Check.That(a.Entries[2].Path).Contains("mmc.exe");
+
+            Check.That(a.Entries[5].PathSize).IsEqualTo(62);
+            Check.That(a.Entries[5].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.No);
+            Check.That(a.Entries[5].Path).Contains("SCW.exe");
+
+            Check.That(a.Entries[337].PathSize).IsEqualTo(148);
+            Check.That(a.Entries[337].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.Yes);
+            Check.That(a.Entries[337].Path).Contains("MSExchangeTransport.exe");
+
+            Check.That(a.Entries[349].PathSize).IsEqualTo(136);
+            Check.That(a.Entries[349].Executed).IsEqualTo(AppCompatCache.AppCompatCache.Execute.Yes);
+            Check.That(a.Entries[349].Path).Contains("MSExchangeFDS.exe");
+        }
 
         [Test]
         public void Win10_CreatorsShouldFindEntries()
