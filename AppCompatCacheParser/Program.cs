@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using AppCompatCache;
 using CsvHelper.Configuration;
+using CsvHelper.TypeConversion;
 using Exceptionless;
 using Fclp;
 using Microsoft.Win32;
@@ -176,17 +178,37 @@ namespace AppCompatCacheParser
 
                 var outFilename = Path.Combine(_fluentCommandLineParser.Object.SaveTo, outFileBase);
 
-                var sw = new StreamWriter(outFilename)
-                {
-                    AutoFlush = true
-
-                };
+                var sw = new StreamWriter(outFilename);
+            
                 var csv = new CsvWriter(sw);
-
-                csv.Configuration.RegisterClassMap(new CacheOutputMap(_fluentCommandLineParser.Object.DateTimeFormat));
+                csv.Configuration.HasHeaderRecord = true;
                 csv.Configuration.Delimiter = "\t";
 
+                var foo = csv.Configuration.AutoMap<CacheEntry>();
+                var o = new TypeConverterOptions
+                {
+                    DateTimeStyle = DateTimeStyles.AssumeUniversal & DateTimeStyles.AdjustToUniversal
+                };
+                csv.Configuration.TypeConverterOptionsCache.AddOptions<CacheEntry>(o);
+
+                foo.Map(t => t.LastModifiedTimeUTC).ConvertUsing(t=>t.LastModifiedTimeUTC.ToString(_fluentCommandLineParser.Object.DateTimeFormat));
+
+                foo.Map(t => t.CacheEntrySize).Ignore();
+                foo.Map(t => t.Data).Ignore();
+                foo.Map(t => t.InsertFlags).Ignore();
+                foo.Map(t => t.DataSize).Ignore();
+                foo.Map(t => t.LastModifiedFILETIMEUTC).Ignore();
+                foo.Map(t => t.PathSize).Ignore();
+                foo.Map(t => t.Signature).Ignore();
+
+                foo.Map(t => t.ControlSet).Index(0);
+                foo.Map(t => t.CacheEntryPosition).Index(1);
+                foo.Map(t => t.Path).Index(2);
+                foo.Map(t => t.LastModifiedTimeUTC).Index(3);
+                foo.Map(t => t.Executed).Index(4);
+
                 csv.WriteHeader<CacheEntry>();
+                csv.NextRecord();
 
                 logger.Debug($"**** Found {appCompat.Caches.Count} caches");
 
@@ -199,10 +221,8 @@ namespace AppCompatCacheParser
                             appCompatCach.PrintDump();
                         }
                         
-
                         try
                         {
-
                             logger.Info(
                                 $"Found {appCompatCach.Entries.Count:N0} cache entries for {appCompat.OperatingSystem} in ControlSet00{appCompatCach.ControlSet}");
 
@@ -228,11 +248,9 @@ namespace AppCompatCacheParser
                                 logger.Error($"Couldn't PrintDump {ex1.Message} Stack: {ex1.StackTrace}");
 
                             }
-
                         }
-
                     }
-
+                    sw.Flush();
                     sw.Close();
 
                     logger.Warn($"\r\nResults saved to '{outFilename}'\r\n");
@@ -263,16 +281,4 @@ namespace AppCompatCacheParser
         public string DateTimeFormat { get; set; }
     }
 
-    public sealed class CacheOutputMap : CsvClassMap<CacheEntry>
-    {
-        public CacheOutputMap(string dateformat)
-        {
-            Map(m => m.ControlSet);
-            Map(m => m.CacheEntryPosition);
-            Map(m => m.Path);
-            Map(m => m.LastModifiedTimeUTC).TypeConverterOption(dateformat);
-            Map(m => m.Executed);
-     //       Map(m => m.LastModifiedFILETIMEUTC);
-        }
-    }
 }
