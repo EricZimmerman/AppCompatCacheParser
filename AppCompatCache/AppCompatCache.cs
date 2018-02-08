@@ -53,10 +53,10 @@ namespace AppCompatCache
             Unknown
         }
 
-        public AppCompatCache(byte[] rawBytes, int controlSet)
+        public AppCompatCache(byte[] rawBytes, int controlSet, bool is32Bit)
         {
             Caches = new List<IAppCompatCache>();
-            var cache = Init(rawBytes, false, controlSet);
+            var cache = Init(rawBytes, is32Bit, controlSet);
             Caches.Add(cache);
         }
 

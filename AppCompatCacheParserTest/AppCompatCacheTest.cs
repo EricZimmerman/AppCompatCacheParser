@@ -3,6 +3,7 @@ using AppCompatCache;
 using NFluent;
 using NUnit.Framework;
 
+
 namespace AppCompatCacheTest
 {
     [TestFixture]
@@ -30,12 +31,14 @@ namespace AppCompatCacheTest
         public byte[] WinXp;
         public byte[] Win2k8Std;
 
-        //        [Test]
-        //        public void OneOff()
-        //        {
-        //            var foo = File.ReadAllBytes(@"D:\Temp\Win2003SP2.bin");
-        //            var a = new VistaWin2k3Win2k8(foo, true, -1);
-        //        }
+                [Test]
+                public void OneOff()
+                {
+                    var foo = File.ReadAllBytes(@"C:\Users\eric\Desktop\SYSTEM");
+
+
+                    var a = new AppCompatCache.AppCompatCache(foo, 1,true);
+                }
 
         [Test]
         public void Win2k8Std_ShouldFindEntries()
