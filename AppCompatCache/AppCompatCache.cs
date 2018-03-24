@@ -111,7 +111,24 @@ namespace AppCompatCache
                 throw new FileNotFoundException($"File not found ({filename})!");
             }
 
-            var hive = new RegistryHiveOnDemand(filename);
+            var hive = new RegistryHive(filename);
+
+            if (hive.Header.PrimarySequenceNumber != hive.Header.SecondarySequenceNumber)
+            {
+                var logFiles = Directory.GetFiles(Path.GetDirectoryName(filename), "*.LOG*");
+
+                if (logFiles.Length == 0)
+                {
+                    var log = LogManager.GetCurrentClassLogger();
+
+                    log.Warn("Registry hive is dirty and no transaction logs were found in the same directory! Aborting!!");
+                    throw new Exception("Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
+                }
+
+                hive.ProcessTransactionLogs(logFiles.ToList(),true);
+            }
+
+            hive.ParseHive();
 
 
             if (controlSet == -1)

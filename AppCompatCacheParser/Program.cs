@@ -237,7 +237,11 @@ namespace AppCompatCacheParser
                         }
                         catch (Exception ex)
                         {
-                            logger.Error($"There was an error: Error message: {ex.Message} Stack: {ex.StackTrace}");
+                            
+                                logger.Error($"There was an error: Error message: {ex.Message} Stack: {ex.StackTrace}");
+                            
+
+                            
 
                             try
                             {
@@ -263,7 +267,11 @@ namespace AppCompatCacheParser
             }
             catch (Exception ex)
             {
-                logger.Error($"There was an error: Error message: {ex.Message} Stack: {ex.StackTrace}");
+                if (ex.Message.Contains("Sequence numbers do not match and transaction logs were not found in the same direct") == false)
+                {
+                    logger.Error($"There was an error: Error message: {ex.Message} Stack: {ex.StackTrace}");
+                }
+                
             }
         }
     }

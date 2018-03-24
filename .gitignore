@@ -5,6 +5,7 @@
 *.suo
 *.user
 *.sln.docstates
+storage.ide
 
 # Build results
 [Dd]ebug/
@@ -194,5 +195,6 @@ ModelManifest.xml
 /.vs/AppCompatCacheParser/v15/Server/sqlite3/storage.ide-shm
 /.vs/AppCompatCacheParser/v15/Server/sqlite3/storage.ide-wal
 /.vs/AppCompatCacheParser/v15/sqlite3/db.lock
+/.vs/AppCompatCacheParser/v15/sqlite3/storage.ide
 /.vs/AppCompatCacheParser/v15/sqlite3/storage.ide-wal
 /.vs/AppCompatCacheParser/v15/sqlite3/storage.ide-shm
