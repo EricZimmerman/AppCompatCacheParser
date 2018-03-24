@@ -115,13 +115,15 @@ namespace AppCompatCache
 
             if (hive.Header.PrimarySequenceNumber != hive.Header.SecondarySequenceNumber)
             {
-                var logFiles = Directory.GetFiles(Path.GetDirectoryName(filename), "*.LOG*");
+                var hiveBase = Path.GetFileName(filename);
+
+                var logFiles = Directory.GetFiles(Path.GetDirectoryName(filename), $"{hiveBase}.LOG*");
 
                 if (logFiles.Length == 0)
                 {
                     var log = LogManager.GetCurrentClassLogger();
 
-                    log.Warn("Registry hive is dirty and no transaction logs were found in the same directory! Aborting!!");
+                    log.Warn("Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
                     throw new Exception("Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
                 }
 
