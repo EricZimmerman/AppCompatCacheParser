@@ -21,6 +21,8 @@ namespace AppCompatCacheParser
     {
         private static FluentCommandLineParser<ApplicationArguments> _fluentCommandLineParser;
 
+        private static string exportExt = "tsv";
+
         private static void SetupNLog()
         {
             var config = new LoggingConfiguration();
@@ -70,7 +72,7 @@ namespace AppCompatCacheParser
 
             _fluentCommandLineParser.Setup(arg => arg.SaveTo)
                 .As("csv")
-                .WithDescription("Directory to save results. Required")
+                .WithDescription("Directory to save results. Required\r\n")
                 .Required();
 
             _fluentCommandLineParser.Setup(arg => arg.HiveFile)
@@ -99,6 +101,11 @@ namespace AppCompatCacheParser
                 .WithDescription(
                     "The custom date/time format to use when displaying timestamps. See https://goo.gl/CNVq0k for options. Default is: yyyy-MM-dd HH:mm:ss")
                 .SetDefault("yyyy-MM-dd HH:mm:ss");
+
+            _fluentCommandLineParser.Setup(arg => arg.CsvSeparator)
+                .As("cs")
+                .WithDescription(
+                    "When true, use comma instead of tab for field separator. Default is false").SetDefault(false);
 
             var header =
                 $"AppCompatCache Parser version {Assembly.GetExecutingAssembly().GetName().Version}" +
@@ -141,6 +148,11 @@ namespace AppCompatCacheParser
 
             logger.Info("");
 
+            if (_fluentCommandLineParser.Object.CsvSeparator)
+            {
+                exportExt = "csv";
+            }
+
             if (_fluentCommandLineParser.Object.Debug)
             {
                 LogManager.Configuration.LoggingRules.First().EnableLoggingForLevel(LogLevel.Debug);
@@ -158,17 +170,17 @@ namespace AppCompatCacheParser
                     if (_fluentCommandLineParser.Object.ControlSet >= 0)
                     {
                         outFileBase =
-                            $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_ControlSet00{_fluentCommandLineParser.Object.ControlSet}_AppCompatCache.tsv";
+                            $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_ControlSet00{_fluentCommandLineParser.Object.ControlSet}_AppCompatCache.{exportExt}";
                     }
                     else
                     {
                         outFileBase =
-                            $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_AppCompatCache.tsv";
+                            $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_AppCompatCache.{exportExt}";
                     }
                 }
                 else
                 {
-                    outFileBase = $"{appCompat.OperatingSystem}_{Environment.MachineName}_AppCompatCache.tsv";
+                    outFileBase = $"{appCompat.OperatingSystem}_{Environment.MachineName}_AppCompatCache.{exportExt}";
                 }
 
                 if (Directory.Exists(_fluentCommandLineParser.Object.SaveTo) == false)
@@ -182,7 +194,11 @@ namespace AppCompatCacheParser
             
                 var csv = new CsvWriter(sw);
                 csv.Configuration.HasHeaderRecord = true;
-                csv.Configuration.Delimiter = "\t";
+
+                if (_fluentCommandLineParser.Object.CsvSeparator == false)
+                {
+                    csv.Configuration.Delimiter = "\t";
+                }
 
                 var foo = csv.Configuration.AutoMap<CacheEntry>();
                 var o = new TypeConverterOptions
@@ -279,7 +295,6 @@ namespace AppCompatCacheParser
     public class ApplicationArguments
     {
         public string HiveFile { get; set; }
-        public bool FindEvidence { get; set; }
         public bool SortTimestamps { get; set; }
         public int ControlSet { get; set; }
         public string SaveTo { get; set; }
@@ -287,6 +302,8 @@ namespace AppCompatCacheParser
         public bool Debug { get; set; }
 
         public string DateTimeFormat { get; set; }
+
+        public bool CsvSeparator { get; set; }
     }
 
 }
