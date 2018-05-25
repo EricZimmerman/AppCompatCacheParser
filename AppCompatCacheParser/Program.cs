@@ -105,7 +105,7 @@ namespace AppCompatCacheParser
             _fluentCommandLineParser.Setup(arg => arg.CsvSeparator)
                 .As("cs")
                 .WithDescription(
-                    "When true, use comma instead of tab for field separator. Default is false").SetDefault(false);
+                    "When true, use comma instead of tab for field separator. Default is true").SetDefault(true);
 
             var header =
                 $"AppCompatCache Parser version {Assembly.GetExecutingAssembly().GetName().Version}" +
