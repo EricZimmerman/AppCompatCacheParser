@@ -72,7 +72,7 @@ namespace AppCompatCacheParser
 
             _fluentCommandLineParser.Setup(arg => arg.SaveTo)
                 .As("csv")
-                .WithDescription("Directory to save results. Required\r\n")
+                .WithDescription("Directory to save CSV formatted results to. Required\r\n")
                 .Required();
 
             _fluentCommandLineParser.Setup(arg => arg.HiveFile)
