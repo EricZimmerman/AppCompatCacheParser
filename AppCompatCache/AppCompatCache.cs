@@ -117,7 +117,7 @@ namespace AppCompatCache
             {
                 var hiveBase = Path.GetFileName(filename);
 
-                var logFiles = Directory.GetFiles(Path.GetDirectoryName(filename), $"{hiveBase}.LOG*");
+                var logFiles = Directory.GetFiles(Path.GetDirectoryName(filename), $"{hiveBase}.LOG?");
 
                 if (logFiles.Length == 0)
                 {
