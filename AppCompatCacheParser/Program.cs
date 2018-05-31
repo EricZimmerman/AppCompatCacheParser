@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Principal;
 using AppCompatCache;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
@@ -40,6 +41,13 @@ namespace AppCompatCacheParser
             config.LoggingRules.Add(rule1);
 
             LogManager.Configuration = config;
+        }
+
+        public static bool IsAdministrator()
+        {
+            var identity = WindowsIdentity.GetCurrent();
+            var principal = new WindowsPrincipal(identity);
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
 
         private static bool CheckForDotnet46()
@@ -143,6 +151,12 @@ namespace AppCompatCacheParser
 
             logger.Info(header);
             logger.Info("");
+            logger.Info($"Command line: {string.Join(" ", Environment.GetCommandLineArgs().Skip(1))}\r\n");
+
+            if (IsAdministrator() == false)
+            {
+                logger.Fatal($"Warning: Administrator privileges not found!\r\n");
+            }
 
             logger.Info($"Processing hive '{hiveToProcess}'");
 
