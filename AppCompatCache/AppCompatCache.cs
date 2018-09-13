@@ -116,8 +116,15 @@ namespace AppCompatCache
             if (hive.Header.PrimarySequenceNumber != hive.Header.SecondarySequenceNumber)
             {
                 var hiveBase = Path.GetFileName(filename);
+                
+                  var dirname = Path.GetDirectoryName(filename);
 
-                var logFiles = Directory.GetFiles(Path.GetDirectoryName(filename), $"{hiveBase}.LOG?");
+                if (string.IsNullOrEmpty(dirname))
+                {
+                    dirname = ".";
+                }
+
+                var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
 
                 if (logFiles.Length == 0)
                 {
