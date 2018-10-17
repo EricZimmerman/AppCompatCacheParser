@@ -118,7 +118,7 @@ namespace AppCompatCacheParser
             _fluentCommandLineParser.Setup(arg => arg.NoTransLogs)
                 .As("nl")
                 .WithDescription(
-                    "When true, look for and process transaction log files for dirty hives. Default is FALSE").SetDefault(false);
+                    "When true, ignore transaction log files for dirty hives. Default is FALSE").SetDefault(false);
 
             var header =
                 $"AppCompatCache Parser version {Assembly.GetExecutingAssembly().GetName().Version}" +
