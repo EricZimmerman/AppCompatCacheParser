@@ -60,7 +60,7 @@ namespace AppCompatCache
             Caches.Add(cache);
         }
 
-        public AppCompatCache(string filename, int controlSet)
+        public AppCompatCache(string filename, int controlSet, bool noLogs)
         {
             byte[] rawBytes = null;
             Caches = new List<IAppCompatCache>();
@@ -113,7 +113,7 @@ namespace AppCompatCache
 
             var hive = new RegistryHive(filename);
 
-            if (hive.Header.PrimarySequenceNumber != hive.Header.SecondarySequenceNumber)
+            if (noLogs == false && hive.Header.PrimarySequenceNumber != hive.Header.SecondarySequenceNumber)
             {
                 var hiveBase = Path.GetFileName(filename);
                 

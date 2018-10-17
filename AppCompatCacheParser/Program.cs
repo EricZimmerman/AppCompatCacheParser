@@ -115,6 +115,11 @@ namespace AppCompatCacheParser
                 .WithDescription(
                     "When true, use comma instead of tab for field separator. Default is true").SetDefault(true);
 
+            _fluentCommandLineParser.Setup(arg => arg.NoTransLogs)
+                .As("nl")
+                .WithDescription(
+                    "When true, look for and process transaction log files for dirty hives. Default is FALSE").SetDefault(false);
+
             var header =
                 $"AppCompatCache Parser version {Assembly.GetExecutingAssembly().GetName().Version}" +
                 $"\r\n\r\nAuthor: Eric Zimmerman (saericzimmerman@gmail.com)" +
@@ -175,7 +180,7 @@ namespace AppCompatCacheParser
             try
             {
                 var appCompat = new AppCompatCache.AppCompatCache(_fluentCommandLineParser.Object.HiveFile,
-                    _fluentCommandLineParser.Object.ControlSet);
+                    _fluentCommandLineParser.Object.ControlSet,_fluentCommandLineParser.Object.NoTransLogs);
 
                 var outFileBase = string.Empty;
 
@@ -314,6 +319,8 @@ namespace AppCompatCacheParser
         public string SaveTo { get; set; }
 
         public bool Debug { get; set; }
+
+        public bool NoTransLogs { get; set; } = false;
 
         public string DateTimeFormat { get; set; }
 
