@@ -113,7 +113,7 @@ namespace AppCompatCache
 
             var hive = new RegistryHive(filename);
 
-            if (noLogs == false && hive.Header.PrimarySequenceNumber != hive.Header.SecondarySequenceNumber)
+            if (hive.Header.PrimarySequenceNumber != hive.Header.SecondarySequenceNumber)
             {
                 var hiveBase = Path.GetFileName(filename);
                 
@@ -130,11 +130,18 @@ namespace AppCompatCache
                 {
                     var log = LogManager.GetCurrentClassLogger();
 
-                    log.Warn("Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
-                    throw new Exception("Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
-                }
+                    if (noLogs == false)
+                    {
+                        log.Warn("Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
+                        throw new Exception("Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
+                    }
 
-                hive.ProcessTransactionLogs(logFiles.ToList(),true);
+                    log.Warn("Registry hive is dirty and no transaction logs were found in the same directory. Data may be missing! Continuing anyways...");
+                }
+                else
+                {
+                     hive.ProcessTransactionLogs(logFiles.ToList(),true);
+                }
             }
 
             hive.ParseHive();
