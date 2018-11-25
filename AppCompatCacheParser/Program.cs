@@ -13,6 +13,7 @@ using Microsoft.Win32;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using ServiceStack;
 using ServiceStack.Text;
 using CsvWriter = CsvHelper.CsvWriter;
 
@@ -22,7 +23,6 @@ namespace AppCompatCacheParser
     {
         private static FluentCommandLineParser<ApplicationArguments> _fluentCommandLineParser;
 
-        private static string exportExt = "tsv";
 
         private static void SetupNLog()
         {
@@ -50,18 +50,6 @@ namespace AppCompatCacheParser
             return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
 
-        private static bool CheckForDotnet46()
-        {
-            using (
-                var ndpKey =
-                    RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32)
-                        .OpenSubKey("SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full\\"))
-            {
-                var releaseKey = Convert.ToInt32(ndpKey.GetValue("Release"));
-
-                return releaseKey >= 393295;
-            }
-        }
 
         private static void Main(string[] args)
         {
@@ -70,18 +58,18 @@ namespace AppCompatCacheParser
 
             var logger = LogManager.GetCurrentClassLogger();
 
-            if (!CheckForDotnet46())
-            {
-                logger.Warn(".net 4.6 not detected. Please install .net 4.6 and try again.");
-                return;
-            }
+
 
             _fluentCommandLineParser = new FluentCommandLineParser<ApplicationArguments>();
 
-            _fluentCommandLineParser.Setup(arg => arg.SaveTo)
+            _fluentCommandLineParser.Setup(arg => arg.CsvDirectory)
                 .As("csv")
-                .WithDescription("Directory to save CSV formatted results to. Required\r\n")
+                .WithDescription("Directory to save CSV formatted results to. Required")
                 .Required();
+            _fluentCommandLineParser.Setup(arg => arg.CsvName)
+                .As("csvf")
+                .WithDescription("File name to save CSV formatted results to. When present, overrides default name\r\n");
+                
 
             _fluentCommandLineParser.Setup(arg => arg.HiveFile)
                 .As('f')
@@ -110,10 +98,6 @@ namespace AppCompatCacheParser
                     "The custom date/time format to use when displaying timestamps. See https://goo.gl/CNVq0k for options. Default is: yyyy-MM-dd HH:mm:ss")
                 .SetDefault("yyyy-MM-dd HH:mm:ss");
 
-            _fluentCommandLineParser.Setup(arg => arg.CsvSeparator)
-                .As("cs")
-                .WithDescription(
-                    "When true, use comma instead of tab for field separator. Default is true").SetDefault(true);
 
             _fluentCommandLineParser.Setup(arg => arg.NoTransLogs)
                 .As("nl")
@@ -126,6 +110,7 @@ namespace AppCompatCacheParser
                 $"\r\nhttps://github.com/EricZimmerman/AppCompatCacheParser";
 
             var footer = @"Examples: AppCompatCacheParser.exe --csv c:\temp -t -c 2" + "\r\n\t " +
+                         @" AppCompatCacheParser.exe --csv c:\temp --csvf results.csv" + "\r\n\t " +
                          "\r\n\t" +
                          "  Short options (single letter) are prefixed with a single dash. Long commands are prefixed with two dashes\r\n";
 
@@ -167,11 +152,6 @@ namespace AppCompatCacheParser
 
             logger.Info("");
 
-            if (_fluentCommandLineParser.Object.CsvSeparator)
-            {
-                exportExt = "csv";
-            }
-
             if (_fluentCommandLineParser.Object.Debug)
             {
                 LogManager.Configuration.LoggingRules.First().EnableLoggingForLevel(LogLevel.Debug);
@@ -189,35 +169,36 @@ namespace AppCompatCacheParser
                     if (_fluentCommandLineParser.Object.ControlSet >= 0)
                     {
                         outFileBase =
-                            $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_ControlSet00{_fluentCommandLineParser.Object.ControlSet}_AppCompatCache.{exportExt}";
+                            $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_ControlSet00{_fluentCommandLineParser.Object.ControlSet}_AppCompatCache.csv";
                     }
                     else
                     {
                         outFileBase =
-                            $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_AppCompatCache.{exportExt}";
+                            $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_AppCompatCache.csv";
                     }
                 }
                 else
                 {
-                    outFileBase = $"{appCompat.OperatingSystem}_{Environment.MachineName}_AppCompatCache.{exportExt}";
+                    outFileBase = $"{appCompat.OperatingSystem}_{Environment.MachineName}_AppCompatCache.csv";
                 }
 
-                if (Directory.Exists(_fluentCommandLineParser.Object.SaveTo) == false)
+                if (_fluentCommandLineParser.Object.CsvName.IsNullOrEmpty() == false)
                 {
-                    Directory.CreateDirectory(_fluentCommandLineParser.Object.SaveTo);
+                    outFileBase = Path.GetFileName(_fluentCommandLineParser.Object.CsvName);
                 }
 
-                var outFilename = Path.Combine(_fluentCommandLineParser.Object.SaveTo, outFileBase);
+                if (Directory.Exists(_fluentCommandLineParser.Object.CsvDirectory) == false)
+                {
+                    Directory.CreateDirectory(_fluentCommandLineParser.Object.CsvDirectory);
+                }
+
+                var outFilename = Path.Combine(_fluentCommandLineParser.Object.CsvDirectory, outFileBase);
 
                 var sw = new StreamWriter(outFilename);
             
                 var csv = new CsvWriter(sw);
                 csv.Configuration.HasHeaderRecord = true;
-
-                if (_fluentCommandLineParser.Object.CsvSeparator == false)
-                {
-                    csv.Configuration.Delimiter = "\t";
-                }
+                
 
                 var foo = csv.Configuration.AutoMap<CacheEntry>();
                 var o = new TypeConverterOptions
@@ -316,7 +297,8 @@ namespace AppCompatCacheParser
         public string HiveFile { get; set; }
         public bool SortTimestamps { get; set; }
         public int ControlSet { get; set; }
-        public string SaveTo { get; set; }
+        public string CsvDirectory { get; set; }
+        public string CsvName { get; set; }
 
         public bool Debug { get; set; }
 
@@ -324,7 +306,6 @@ namespace AppCompatCacheParser
 
         public string DateTimeFormat { get; set; }
 
-        public bool CsvSeparator { get; set; }
     }
 
 }
