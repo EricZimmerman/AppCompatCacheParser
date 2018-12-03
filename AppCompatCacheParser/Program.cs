@@ -163,23 +163,24 @@ namespace AppCompatCacheParser
                     _fluentCommandLineParser.Object.ControlSet,_fluentCommandLineParser.Object.NoTransLogs);
 
                 var outFileBase = string.Empty;
+                var ts1 = DateTime.Now.ToString("yyyyMMddHHmmss");
 
                 if (_fluentCommandLineParser.Object.HiveFile?.Length > 0)
                 {
                     if (_fluentCommandLineParser.Object.ControlSet >= 0)
                     {
                         outFileBase =
-                            $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_ControlSet00{_fluentCommandLineParser.Object.ControlSet}_AppCompatCache.csv";
+                            $"{ts1}_{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_ControlSet00{_fluentCommandLineParser.Object.ControlSet}_AppCompatCache.csv";
                     }
                     else
                     {
                         outFileBase =
-                            $"{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_AppCompatCache.csv";
+                            $"{ts1}_{appCompat.OperatingSystem}_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.HiveFile)}_AppCompatCache.csv";
                     }
                 }
                 else
                 {
-                    outFileBase = $"{appCompat.OperatingSystem}_{Environment.MachineName}_AppCompatCache.csv";
+                    outFileBase = $"{ts1}_{appCompat.OperatingSystem}_{Environment.MachineName}_AppCompatCache.csv";
                 }
 
                 if (_fluentCommandLineParser.Object.CsvName.IsNullOrEmpty() == false)
@@ -253,11 +254,7 @@ namespace AppCompatCacheParser
                         }
                         catch (Exception ex)
                         {
-                            
                                 logger.Error($"There was an error: Error message: {ex.Message} Stack: {ex.StackTrace}");
-                            
-
-                            
 
                             try
                             {
