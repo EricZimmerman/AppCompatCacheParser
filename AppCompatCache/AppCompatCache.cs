@@ -4,14 +4,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Alphaleonis.Win32.Security;
 using NLog;
 using Registry;
 using Registry.Abstractions;
+using Directory = Alphaleonis.Win32.Filesystem.Directory;
+using File = Alphaleonis.Win32.Filesystem.File;
+using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace AppCompatCache
 {
     public class AppCompatCache
     {
+        private Logger _logger = LogManager.GetLogger("AppCompatCache");
+
         public enum Execute
         {
             Yes,
@@ -103,65 +109,157 @@ namespace AppCompatCache
                 return;
             }
 
+            RegistryHive reg;
+
+
+            Privilege[] privileges = {Privilege.EnableDelegation, Privilege.Impersonate, Privilege.Tcb};
+            using (new PrivilegeEnabler(Privilege.Backup, privileges))
+            {
+
+            
 
             ControlSet = controlSet;
 
-            if (File.Exists(filename) == false)
+            if (RawCopy.Helper.RawFileExists(filename) == false)
             {
                 throw new FileNotFoundException($"File not found ({filename})!");
             }
 
-            var hive = new RegistryHive(filename);
+      
 
-            if (hive.Header.PrimarySequenceNumber != hive.Header.SecondarySequenceNumber)
+            var dirname = Path.GetDirectoryName(filename);
+            var hiveBase = Path.GetFileName(filename);
+
+            List<RawCopy.RawCopyReturn> rawFiles = null;
+
+            try
             {
-                var hiveBase = Path.GetFileName(filename);
+                reg = new RegistryHive(filename)
+                {
+                    RecoverDeleted = true
+                };
+            }
+            catch (IOException)
+            {
+                //file is in use
+
+                if (RawCopy.Helper.IsAdministrator() == false)
+                {
+                    throw new UnauthorizedAccessException("Administrator privileges not found!");
+                }
+               
+                _logger.Warn($"'{filename}' is in use. Rerouting...\r\n");
+
+                var files = new List<string>();
+                files.Add(filename);
+
+                var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?").ToList();
+
+                var log1 = $"{dirname}\\{hiveBase}.LOG1";
+                var log2 = $"{dirname}\\{hiveBase}.LOG2";
+
+                if (logFiles.Count == 0)
+                {
+                    if (RawCopy.Helper.RawFileExists(log1))
+                    {
+                        logFiles.Add(log1);
+                    }
+                    if (RawCopy.Helper.RawFileExists(log2))
+                    {
+                        logFiles.Add(log2);
+                    }
+                }
+
+                foreach (var logFile in logFiles)
+                {
+                    files.Add(logFile);
+                }
+
+                rawFiles = RawCopy.Helper.GetFiles(files);
+
+                reg = new RegistryHive(rawFiles.First().FileBytes,rawFiles.First().InputFilename);
+            }
+
+            if (reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
+            {
                 
-                  var dirname = Path.GetDirectoryName(filename);
 
                 if (string.IsNullOrEmpty(dirname))
                 {
                     dirname = ".";
                 }
 
-                var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
-                var log = LogManager.GetCurrentClassLogger();
+                var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?").ToList();
 
-                if (logFiles.Length == 0)
+                var log1 = $"{dirname}\\{hiveBase}.LOG1";
+                var log2 = $"{dirname}\\{hiveBase}.LOG2";
+                
+                if (logFiles.Count == 0)
+                {
+                    if (RawCopy.Helper.RawFileExists(log1))
+                    {
+                        logFiles.Add(log1);
+                    }
+                    if (RawCopy.Helper.RawFileExists(log2))
+                    {
+                        logFiles.Add(log2);
+                    }
+                }
+
+                if (logFiles.Count == 0)
                 {
                     if (noLogs == false)
                     {
-                        log.Warn("Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
+                        _logger.Warn("Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
                         throw new Exception("Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
                     }
-
-                    log.Warn("Registry hive is dirty and no transaction logs were found in the same directory. Data may be missing! Continuing anyways...");
+                    else
+                    {
+                        _logger.Warn("Registry hive is dirty and no transaction logs were found in the same directory. Data may be missing! Continuing anyways...");
+                    }
+               
                 }
                 else
                 {
                     if (noLogs == false)
                     {
-                        hive.ProcessTransactionLogs(logFiles.ToList(),true);
+                        if (rawFiles != null)
+                        {
+                            var lt = new List<TransactionLogFileInfo>();
+                            foreach (var rawCopyReturn in rawFiles.Skip(1).ToList())
+                            {
+                                var tt = new TransactionLogFileInfo(rawCopyReturn.InputFilename,rawCopyReturn.FileBytes);
+                                lt.Add(tt);
+                            }
+
+                            reg.ProcessTransactionLogs(lt,true);
+                        }
+                        else
+                        {
+                            reg.ProcessTransactionLogs(logFiles.ToList(),true);    
+                        }
                     }
                     else
                     {
-                        log.Warn("Registry hive is dirty and transaction logs were found in the same directory, but --nl was provided. Data may be missing! Continuing anyways...");
+                        _logger.Warn("Registry hive is dirty and transaction logs were found in the same directory, but --nl was provided. Data may be missing! Continuing anyways...");
                     }
+                    
                 }
             }
 
-            hive.ParseHive();
 
+            reg.ParseHive();
+            }
 
             if (controlSet == -1)
             {
                 for (var i = 0; i < 10; i++)
                 {
-                    subKey = hive.GetKey($@"ControlSet00{i}\Control\Session Manager\AppCompatCache");
+                    subKey = reg.GetKey($@"ControlSet00{i}\Control\Session Manager\AppCompatCache");
 
                     if (subKey == null)
                     {
-                        subKey = hive.GetKey($@"ControlSet00{i}\Control\Session Manager\AppCompatibility");
+                        subKey = reg.GetKey($@"ControlSet00{i}\Control\Session Manager\AppCompatibility");
                     }
 
                     if (subKey != null)
@@ -172,20 +270,20 @@ namespace AppCompatCache
 
                 if (controlSetIds.Count > 1)
                 {
-                    var log = LogManager.GetCurrentClassLogger();
+                 
 
-                    log.Warn(
+                    _logger.Warn(
                         $"***The following ControlSet00x keys will be exported: {string.Join(",", controlSetIds)}. Use -c to process keys individually\r\n");
                 }
             }
             else
             {
                 //a control set was passed in
-                subKey = hive.GetKey($@"ControlSet00{ControlSet}\Control\Session Manager\AppCompatCache");
+                subKey = reg.GetKey($@"ControlSet00{ControlSet}\Control\Session Manager\AppCompatCache");
 
                 if (subKey == null)
                 {
-                    subKey = hive.GetKey($@"ControlSet00{ControlSet}\Control\Session Manager\AppCompatibility");
+                    subKey = reg.GetKey($@"ControlSet00{ControlSet}\Control\Session Manager\AppCompatibility");
                 }
 
                 if (subKey == null)
@@ -199,42 +297,38 @@ namespace AppCompatCache
 
             var is32 = Is32Bit(filename);
 
-            var log1 = LogManager.GetCurrentClassLogger();
+          
 
-            log1.Debug($@"**** Found {controlSetIds.Count} ids to process");
+            _logger.Debug($@"**** Found {controlSetIds.Count} ids to process");
 
 
             foreach (var id in controlSetIds)
             {
-                log1.Debug($@"**** Processing id {id}");
+                _logger.Debug($@"**** Processing id {id}");
 
-                var hive2 = new RegistryHiveOnDemand(filename);
+              //  var hive2 = new RegistryHiveOnDemand(filename);
 
-                subKey = hive2.GetKey($@"ControlSet00{id}\Control\Session Manager\AppCompatCache");
-
-
+                subKey = reg.GetKey($@"ControlSet00{id}\Control\Session Manager\AppCompatCache");
 
                 if (subKey == null)
                 {
-                    log1.Debug($@"**** Initial subkey null, getting appCompatability key");
-                    subKey = hive2.GetKey($@"ControlSet00{id}\Control\Session Manager\AppCompatibility");
+                    _logger.Debug($@"**** Initial subkey null, getting appCompatability key");
+                    subKey = reg.GetKey($@"ControlSet00{id}\Control\Session Manager\AppCompatibility");
                 }
 
-                log1.Debug($@"**** Looking  AppCompatcache value");
+                _logger.Debug($@"**** Looking  AppCompatcache value");
 
                 var val = subKey?.Values.SingleOrDefault(c => c.ValueName == "AppCompatCache");
 
                 if (val != null)
                 {
-                    log1.Debug($@"**** Found AppCompatcache value");
+                    _logger.Debug($@"**** Found AppCompatcache value");
                     rawBytes = val.ValueDataRaw;
                 }
 
                 if (rawBytes == null)
                 {
-                    var log = LogManager.GetCurrentClassLogger();
-
-                    log.Error($@"'AppCompatCache' value not found for 'ControlSet00{id}'! Exiting");
+                    _logger.Error($@"'AppCompatCache' value not found for 'ControlSet00{id}'! Exiting");
                 }
 
                 var cache = Init(rawBytes, is32, id);
@@ -354,7 +448,12 @@ namespace AppCompatCache
             }
             else
             {
-                var hive = new RegistryHiveOnDemand(fileName);
+                var l = new List<string>();
+                    l.Add(fileName);
+
+                    var ff = RawCopy.Helper.GetFiles(l);
+
+                var hive = new RegistryHiveOnDemand(ff.First().FileBytes,fileName);
                 var subKey = hive.GetKey("Select");
 
                 var currentCtlSet = int.Parse(subKey.Values.Single(c => c.ValueName == "Current").ValueData);

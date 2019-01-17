@@ -36,6 +36,10 @@
   </PropertyGroup>
   <PropertyGroup />
   <ItemGroup>
+    <Reference Include="RawCopy, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Dependencies\RawCopy.dll</HintPath>
+    </Reference>
     <Reference Include="Registry">
       <HintPath>.\Registry.dll</HintPath>
     </Reference>
@@ -68,11 +72,14 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="AlphaFS">
+      <Version>2.2.6</Version>
+    </PackageReference>
     <PackageReference Include="Costura.Fody">
-      <Version>3.2.1</Version>
+      <Version>3.3.0</Version>
     </PackageReference>
     <PackageReference Include="Fody">
-      <Version>3.3.3</Version>
+      <Version>3.3.5</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -82,6 +89,12 @@
     <PackageReference Include="NLog">
       <Version>4.5.11</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Dependencies\RawCopy.dll" />
+    <Content Include="Dependencies\RawCopy.pdb" />
+    <Content Include="Dependencies\Registry.dll" />
+    <Content Include="Dependencies\Registry.pdb" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -286,7 +286,19 @@ namespace AppCompatCacheParser
             {
                 if (ex.Message.Contains("Sequence numbers do not match and transaction logs were not found in the same direct") == false)
                 {
-                    logger.Error($"There was an error: Error message: {ex.Message} Stack: {ex.StackTrace}");
+                    if (ex.Message.Contains("Administrator privileges not found"))
+                    {
+                        logger.Fatal($"Could not access '{_fluentCommandLineParser.Object.HiveFile}' because it is in use");
+                        logger.Error("");
+                        logger.Fatal("Rerun the program with Administrator privileges to try again\r\n");
+                    }
+                    else
+                    {
+                        logger.Error($"There was an error: {ex.Message}");
+                        logger.Error($"Stacktrace: {ex.StackTrace}");
+                        logger.Info("");
+                    }
+
                 }
                 
             }
