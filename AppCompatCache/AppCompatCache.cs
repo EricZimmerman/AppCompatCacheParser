@@ -100,7 +100,7 @@ namespace AppCompatCache
                 subKey2 = keyCurrUser.OpenSubKey(@"SYSTEM\Select");
                 ControlSet = (int) subKey2.GetValue("Current");
 
-                var is32Bit = Is32Bit(filename);
+                var is32Bit = Is32Bit(filename,null);
 
                 var cache = Init(rawBytes, is32Bit, ControlSet);
 
@@ -120,7 +120,7 @@ namespace AppCompatCache
 
             ControlSet = controlSet;
 
-            if (RawCopy.Helper.RawFileExists(filename) == false)
+            if (File.Exists(filename) == false && RawCopy.Helper.RawFileExists(filename) == false)
             {
                 throw new FileNotFoundException($"File not found ({filename})!");
             }
@@ -295,7 +295,7 @@ namespace AppCompatCache
             }
 
 
-            var is32 = Is32Bit(filename);
+            var is32 = Is32Bit(filename,reg);
 
           
 
@@ -432,7 +432,7 @@ namespace AppCompatCache
             return appCache;
         }
 
-        public static bool Is32Bit(string fileName)
+        public static bool Is32Bit(string fileName, RegistryHive reg )
         {
             if (fileName.Length == 0)
             {
@@ -448,24 +448,46 @@ namespace AppCompatCache
             }
             else
             {
-                var l = new List<string>();
+                try
+                {
+                    //var hive1 = new RegistryHiveOnDemand(File.ReadAllBytes(fileName),fileName);
+                    var subKey1 = reg.GetKey("Select");
+
+                    var currentCtlSet = int.Parse(subKey1.Values.Single(c => c.ValueName == "Current").ValueData);
+
+                    subKey1 = reg.GetKey($"ControlSet00{currentCtlSet}\\Control\\Session Manager\\Environment");
+
+                    var val = subKey1?.Values.SingleOrDefault(c => c.ValueName == "PROCESSOR_ARCHITECTURE");
+
+                    if (val != null)
+                    {
+                        return val.ValueData.Equals("x86");
+                    }
+                }
+                catch (Exception e)
+                {
+                    var l = new List<string>();
                     l.Add(fileName);
 
                     var ff = RawCopy.Helper.GetFiles(l);
 
-                var hive = new RegistryHiveOnDemand(ff.First().FileBytes,fileName);
-                var subKey = hive.GetKey("Select");
+                    var hive = new RegistryHiveOnDemand(ff.First().FileBytes,fileName);
+                    var subKey = hive.GetKey("Select");
 
-                var currentCtlSet = int.Parse(subKey.Values.Single(c => c.ValueName == "Current").ValueData);
+                    var currentCtlSet = int.Parse(subKey.Values.Single(c => c.ValueName == "Current").ValueData);
 
-                subKey = hive.GetKey($"ControlSet00{currentCtlSet}\\Control\\Session Manager\\Environment");
+                    subKey = hive.GetKey($"ControlSet00{currentCtlSet}\\Control\\Session Manager\\Environment");
 
-                var val = subKey?.Values.SingleOrDefault(c => c.ValueName == "PROCESSOR_ARCHITECTURE");
+                    var val = subKey?.Values.SingleOrDefault(c => c.ValueName == "PROCESSOR_ARCHITECTURE");
 
-                if (val != null)
-                {
-                    return val.ValueData.Equals("x86");
+                    if (val != null)
+                    {
+                        return val.ValueData.Equals("x86");
+                    }
                 }
+
+
+                
             }
 
             throw new NullReferenceException("Unable to determine CPU architecture!");
