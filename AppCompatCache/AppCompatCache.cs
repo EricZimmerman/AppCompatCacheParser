@@ -450,7 +450,6 @@ namespace AppCompatCache
             {
                 try
                 {
-                    //var hive1 = new RegistryHiveOnDemand(File.ReadAllBytes(fileName),fileName);
                     var subKey1 = reg.GetKey("Select");
 
                     var currentCtlSet = int.Parse(subKey1.Values.Single(c => c.ValueName == "Current").ValueData);
