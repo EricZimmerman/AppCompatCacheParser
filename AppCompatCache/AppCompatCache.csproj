@@ -76,7 +76,7 @@
       <Version>2.2.6</Version>
     </PackageReference>
     <PackageReference Include="Costura.Fody">
-      <Version>3.3.0</Version>
+      <Version>3.3.1</Version>
     </PackageReference>
     <PackageReference Include="Fody">
       <Version>3.3.5</Version>
