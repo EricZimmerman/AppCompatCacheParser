@@ -196,11 +196,11 @@ namespace AppCompatCache
                 
                 if (logFiles.Count == 0)
                 {
-                    if (File.Exists(log1))
+                    if (File.Exists(log1) )
                     {
                         logFiles.Add(log1);
                     }
-                    if (File.Exists(log2))
+                    if (File.Exists(log2) )
                     {
                         logFiles.Add(log2);
                     }
@@ -234,10 +234,10 @@ namespace AppCompatCache
 
                             reg.ProcessTransactionLogs(lt,true);
                         }
-//                        else
-//                        {
-//                            reg.ProcessTransactionLogs(logFiles.ToList(),true);    
-//                        }
+                        else
+                        {
+                            reg.ProcessTransactionLogs(logFiles.ToList(),true);    
+                        }
                     }
                     else
                     {
