@@ -10,3 +10,5 @@ http://binaryforay.blogspot.com/2015/05/introducing-appcompatcacheparser.html
 You can get more technical details here
 
 https://github.com/libyal/winreg-kb/wiki/Application-Compatibility-Cache-key
+
+Open Source Development funding and support provided by the following contributors: [SANS Institute](http://sans.org/) and [SANS DFIR](http://dfir.sans.org/).
