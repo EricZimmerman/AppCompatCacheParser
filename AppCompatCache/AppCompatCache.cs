@@ -208,6 +208,18 @@ namespace AppCompatCache
 
                 if (logFiles.Count == 0)
                 {
+                    if (RawCopy.Helper.RawFileExists(log1))
+                    {
+                        logFiles.Add(log1);
+                    }
+                    if (RawCopy.Helper.RawFileExists(log2))
+                    {
+                        logFiles.Add(log2);
+                    }
+                }
+
+                if (logFiles.Count == 0)
+                {
                     if (noLogs == false)
                     {
                         _logger.Warn("Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
