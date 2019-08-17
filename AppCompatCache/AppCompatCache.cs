@@ -1,11 +1,11 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Alphaleonis.Win32.Security;
 using NLog;
+using RawCopy;
 using Registry;
 using Registry.Abstractions;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
@@ -16,8 +16,6 @@ namespace AppCompatCache
 {
     public class AppCompatCache
     {
-        private Logger _logger = LogManager.GetLogger("AppCompatCache");
-
         public enum Execute
         {
             Yes,
@@ -59,6 +57,8 @@ namespace AppCompatCache
             Unknown
         }
 
+        private readonly Logger _logger = LogManager.GetLogger("AppCompatCache");
+
         public AppCompatCache(byte[] rawBytes, int controlSet, bool is32Bit)
         {
             Caches = new List<IAppCompatCache>();
@@ -80,7 +80,8 @@ namespace AppCompatCache
             if (isLiveRegistry)
             {
                 var keyCurrUser = Microsoft.Win32.Registry.LocalMachine;
-                var subKey2 = keyCurrUser.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatCache");
+                var subKey2 =
+                    keyCurrUser.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatCache");
 
                 if (subKey2 == null)
                 {
@@ -100,7 +101,7 @@ namespace AppCompatCache
                 subKey2 = keyCurrUser.OpenSubKey(@"SYSTEM\Select");
                 ControlSet = (int) subKey2.GetValue("Current");
 
-                var is32Bit = Is32Bit(filename,null);
+                var is32Bit = Is32Bit(filename, null);
 
                 var cache = Init(rawBytes, is32Bit, ControlSet);
 
@@ -115,152 +116,151 @@ namespace AppCompatCache
             Privilege[] privileges = {Privilege.EnableDelegation, Privilege.Impersonate, Privilege.Tcb};
             using (new PrivilegeEnabler(Privilege.Backup, privileges))
             {
+                ControlSet = controlSet;
 
-            
-
-            ControlSet = controlSet;
-
-            if (File.Exists(filename) == false && RawCopy.Helper.RawFileExists(filename) == false)
-            {
-                throw new FileNotFoundException($"File not found ({filename})!");
-            }
-
-      
-
-            var dirname = Path.GetDirectoryName(filename);
-            var hiveBase = Path.GetFileName(filename);
-
-            List<RawCopy.RawCopyReturn> rawFiles = null;
-
-            try
-            {
-                reg = new RegistryHive(filename)
+                if (File.Exists(filename) == false && Helper.RawFileExists(filename) == false)
                 {
-                    RecoverDeleted = true
-                };
-            }
-            catch (IOException)
-            {
-                //file is in use
-
-                if (RawCopy.Helper.IsAdministrator() == false)
-                {
-                    throw new UnauthorizedAccessException("Administrator privileges not found!");
-                }
-               
-                _logger.Warn($"'{filename}' is in use. Rerouting...\r\n");
-
-                var files = new List<string>();
-                files.Add(filename);
-
-                var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?").ToList();
-
-                var log1 = $"{dirname}\\{hiveBase}.LOG1";
-                var log2 = $"{dirname}\\{hiveBase}.LOG2";
-
-                if (logFiles.Count == 0)
-                {
-                    if (RawCopy.Helper.RawFileExists(log1))
-                    {
-                        logFiles.Add(log1);
-                    }
-                    if (RawCopy.Helper.RawFileExists(log2))
-                    {
-                        logFiles.Add(log2);
-                    }
+                    throw new FileNotFoundException($"File not found ({filename})!");
                 }
 
-                foreach (var logFile in logFiles)
-                {
-                    files.Add(logFile);
-                }
+                var dirname = Path.GetDirectoryName(Path.GetFullPath(filename));
+                var hiveBase = Path.GetFileName(filename);
 
-                rawFiles = RawCopy.Helper.GetFiles(files);
-
-                reg = new RegistryHive(rawFiles.First().FileBytes,rawFiles.First().InputFilename);
-            }
-
-            if (reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
-            {
                 
 
-                if (string.IsNullOrEmpty(dirname))
+                List<RawCopyReturn> rawFiles = null;
+
+                try
                 {
-                    dirname = ".";
+                    reg = new RegistryHive(filename)
+                    {
+                        RecoverDeleted = true
+                    };
+                }
+                catch (IOException)
+                {
+                    //file is in use
+
+                    if (Helper.IsAdministrator() == false)
+                    {
+                        throw new UnauthorizedAccessException("Administrator privileges not found!");
+                    }
+
+                    _logger.Warn($"'{filename}' is in use. Rerouting...\r\n");
+
+                    var files = new List<string>();
+                    files.Add(filename);
+
+                    var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?").ToList();
+
+                    var log1 = $"{dirname}\\{hiveBase}.LOG1";
+                    var log2 = $"{dirname}\\{hiveBase}.LOG2";
+
+                    if (logFiles.Count == 0)
+                    {
+                        if (Helper.RawFileExists(log1))
+                        {
+                            logFiles.Add(log1);
+                        }
+
+                        if (Helper.RawFileExists(log2))
+                        {
+                            logFiles.Add(log2);
+                        }
+                    }
+
+                    foreach (var logFile in logFiles)
+                    {
+                        files.Add(logFile);
+                    }
+
+                    rawFiles = Helper.GetFiles(files);
+
+                    reg = new RegistryHive(rawFiles.First().FileBytes, rawFiles.First().InputFilename);
                 }
 
-                var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?").ToList();
-
-                var log1 = $"{dirname}\\{hiveBase}.LOG1";
-                var log2 = $"{dirname}\\{hiveBase}.LOG2";
-                
-                if (logFiles.Count == 0)
+                if (reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
                 {
-                    if (File.Exists(log1) )
+                    if (string.IsNullOrEmpty(dirname))
                     {
-                        logFiles.Add(log1);
+                        dirname = ".";
                     }
-                    if (File.Exists(log2) )
-                    {
-                        logFiles.Add(log2);
-                    }
-                }
 
-                if (logFiles.Count == 0)
-                {
-                    if (RawCopy.Helper.RawFileExists(log1))
-                    {
-                        logFiles.Add(log1);
-                    }
-                    if (RawCopy.Helper.RawFileExists(log2))
-                    {
-                        logFiles.Add(log2);
-                    }
-                }
+                    var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?").ToList();
 
-                if (logFiles.Count == 0)
-                {
-                    if (noLogs == false)
+                    var log1 = $"{dirname}\\{hiveBase}.LOG1";
+                    var log2 = $"{dirname}\\{hiveBase}.LOG2";
+
+                    if (logFiles.Count == 0)
                     {
-                        _logger.Warn("Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
-                        throw new Exception("Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
+                        if (File.Exists(log1))
+                        {
+                            logFiles.Add(log1);
+                        }
+
+                        if (File.Exists(log2))
+                        {
+                            logFiles.Add(log2);
+                        }
+                    }
+
+                    if (logFiles.Count == 0)
+                    {
+                        if (Helper.RawFileExists(log1))
+                        {
+                            logFiles.Add(log1);
+                        }
+
+                        if (Helper.RawFileExists(log2))
+                        {
+                            logFiles.Add(log2);
+                        }
+                    }
+
+                    if (logFiles.Count == 0)
+                    {
+                        if (noLogs == false)
+                        {
+                            _logger.Warn(
+                                "Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
+                            throw new Exception(
+                                "Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
+                        }
+
+                        _logger.Warn(
+                            "Registry hive is dirty and no transaction logs were found in the same directory. Data may be missing! Continuing anyways...");
                     }
                     else
                     {
-                        _logger.Warn("Registry hive is dirty and no transaction logs were found in the same directory. Data may be missing! Continuing anyways...");
-                    }
-               
-                }
-                else
-                {
-                    if (noLogs == false)
-                    {
-                        if (rawFiles != null)
+                        if (noLogs == false)
                         {
-                            var lt = new List<TransactionLogFileInfo>();
-                            foreach (var rawCopyReturn in rawFiles.Skip(1).ToList())
+                            if (rawFiles != null)
                             {
-                                var tt = new TransactionLogFileInfo(rawCopyReturn.InputFilename,rawCopyReturn.FileBytes);
-                                lt.Add(tt);
-                            }
+                                var lt = new List<TransactionLogFileInfo>();
+                                foreach (var rawCopyReturn in rawFiles.Skip(1).ToList())
+                                {
+                                    var tt = new TransactionLogFileInfo(rawCopyReturn.InputFilename,
+                                        rawCopyReturn.FileBytes);
+                                    lt.Add(tt);
+                                }
 
-                            reg.ProcessTransactionLogs(lt,true);
+                                reg.ProcessTransactionLogs(lt, true);
+                            }
+                            else
+                            {
+                                reg.ProcessTransactionLogs(logFiles.ToList(), true);
+                            }
                         }
                         else
                         {
-                            reg.ProcessTransactionLogs(logFiles.ToList(),true);    
+                            _logger.Warn(
+                                "Registry hive is dirty and transaction logs were found in the same directory, but --nl was provided. Data may be missing! Continuing anyways...");
                         }
                     }
-                    else
-                    {
-                        _logger.Warn("Registry hive is dirty and transaction logs were found in the same directory, but --nl was provided. Data may be missing! Continuing anyways...");
-                    }
-                    
                 }
-            }
 
 
-            reg.ParseHive();
+                reg.ParseHive();
             }
 
             if (controlSet == -1)
@@ -282,8 +282,6 @@ namespace AppCompatCache
 
                 if (controlSetIds.Count > 1)
                 {
-                 
-
                     _logger.Warn(
                         $"***The following ControlSet00x keys will be exported: {string.Join(",", controlSetIds)}. Use -c to process keys individually\r\n");
                 }
@@ -307,9 +305,8 @@ namespace AppCompatCache
             }
 
 
-            var is32 = Is32Bit(filename,reg);
+            var is32 = Is32Bit(filename, reg);
 
-          
 
             _logger.Debug($@"**** Found {controlSetIds.Count} ids to process");
 
@@ -318,23 +315,23 @@ namespace AppCompatCache
             {
                 _logger.Debug($@"**** Processing id {id}");
 
-              //  var hive2 = new RegistryHiveOnDemand(filename);
+                //  var hive2 = new RegistryHiveOnDemand(filename);
 
                 subKey = reg.GetKey($@"ControlSet00{id}\Control\Session Manager\AppCompatCache");
 
                 if (subKey == null)
                 {
-                    _logger.Debug($@"**** Initial subkey null, getting appCompatability key");
+                    _logger.Debug(@"**** Initial subkey null, getting appCompatability key");
                     subKey = reg.GetKey($@"ControlSet00{id}\Control\Session Manager\AppCompatibility");
                 }
 
-                _logger.Debug($@"**** Looking  AppCompatcache value");
+                _logger.Debug(@"**** Looking  AppCompatcache value");
 
                 var val = subKey?.Values.SingleOrDefault(c => c.ValueName == "AppCompatCache");
 
                 if (val != null)
                 {
-                    _logger.Debug($@"**** Found AppCompatcache value");
+                    _logger.Debug(@"**** Found AppCompatcache value");
                     rawBytes = val.ValueDataRaw;
                 }
 
@@ -378,16 +375,15 @@ namespace AppCompatCache
             if (sigNum == 0xDEADBEEF) //DEADBEEF, WinXp
             {
                 OperatingSystem = OperatingSystemVersion.WindowsXP;
-                
+
                 log1.Debug(@"**** Processing XP hive");
-                
+
                 appCache = new WindowsXP(rawBytes, is32, controlSet);
             }
             else if (sigNum == 0xbadc0ffe)
             {
                 OperatingSystem = OperatingSystemVersion.WindowsVistaWin2k3Win2k8;
-                appCache = new VistaWin2k3Win2k8(rawBytes,is32,controlSet);   
-
+                appCache = new VistaWin2k3Win2k8(rawBytes, is32, controlSet);
             }
             else if (sigNum == 0xBADC0FEE) //BADC0FEE, Win7
             {
@@ -429,22 +425,21 @@ namespace AppCompatCache
                 signature = Encoding.ASCII.GetString(rawBytes, offsetToEntries, 4);
                 if (signature == "10ts")
                 {
-                    
                     appCache = new Windows10(rawBytes, controlSet);
                 }
-              
             }
 
             if (appCache == null)
             {
-                throw new Exception("Unable to determine operating system! Please send the hive to saericzimmerman@gmail.com");
+                throw new Exception(
+                    "Unable to determine operating system! Please send the hive to saericzimmerman@gmail.com");
             }
 
 
             return appCache;
         }
 
-        public static bool Is32Bit(string fileName, RegistryHive reg )
+        public static bool Is32Bit(string fileName, RegistryHive reg)
         {
             if (fileName.Length == 0)
             {
@@ -475,14 +470,14 @@ namespace AppCompatCache
                         return val.ValueData.Equals("x86");
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     var l = new List<string>();
                     l.Add(fileName);
 
-                    var ff = RawCopy.Helper.GetFiles(l);
+                    var ff = Helper.GetFiles(l);
 
-                    var hive = new RegistryHiveOnDemand(ff.First().FileBytes,fileName);
+                    var hive = new RegistryHiveOnDemand(ff.First().FileBytes, fileName);
                     var subKey = hive.GetKey("Select");
 
                     var currentCtlSet = int.Parse(subKey.Values.Single(c => c.ValueName == "Current").ValueData);
@@ -496,9 +491,6 @@ namespace AppCompatCache
                         return val.ValueData.Equals("x86");
                     }
                 }
-
-
-                
             }
 
             throw new NullReferenceException("Unable to determine CPU architecture!");
