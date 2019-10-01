@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -227,11 +228,15 @@ namespace AppCompatCacheParser
                 foo.Map(t => t.Path).Index(2);
                 foo.Map(t => t.LastModifiedTimeUTC).Index(3);
                 foo.Map(t => t.Executed).Index(4);
+                foo.Map(t => t.Duplicate).Index(5);
+                foo.Map(t => t.SourceFile).Index(6);
 
                 csv.WriteHeader<CacheEntry>();
                 csv.NextRecord();
 
                 logger.Debug($"**** Found {appCompat.Caches.Count} caches");
+
+                var cacheKeys = new HashSet<string>();
 
                 if (appCompat.Caches.Any())
                 {
@@ -249,11 +254,33 @@ namespace AppCompatCacheParser
 
                             if (_fluentCommandLineParser.Object.SortTimestamps)
                             {
-                                csv.WriteRecords(appCompatCach.Entries.OrderByDescending(t => t.LastModifiedTimeUTC));
+                               // csv.WriteRecords(appCompatCach.Entries.OrderByDescending(t => t.LastModifiedTimeUTC));
+
+                                foreach (var cacheEntry in appCompatCach.Entries)
+                                {
+                                    cacheEntry.SourceFile = hiveToProcess;
+                                    cacheEntry.Duplicate = cacheKeys.Contains(cacheEntry.GetKey());
+
+                                    cacheKeys.Add(cacheEntry.GetKey());
+
+                                    csv.WriteRecord(cacheEntry);
+                                    csv.NextRecord();
+                                }
+
                             }
                             else
                             {
-                                csv.WriteRecords(appCompatCach.Entries);
+                                foreach (var cacheEntry in appCompatCach.Entries)
+                                {
+                                    cacheEntry.SourceFile = hiveToProcess;
+                                    cacheEntry.Duplicate = cacheKeys.Contains(cacheEntry.GetKey());
+
+                                    cacheKeys.Add(cacheEntry.GetKey());
+
+                                    csv.WriteRecord(cacheEntry);
+                                    csv.NextRecord();
+                                }
+                                //csv.WriteRecords(appCompatCach.Entries);
                             }
                         }
                         catch (Exception ex)
@@ -320,5 +347,7 @@ namespace AppCompatCacheParser
         public string DateTimeFormat { get; set; }
 
     }
+
+  
 
 }

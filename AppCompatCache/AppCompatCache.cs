@@ -204,7 +204,7 @@ namespace AppCompatCache
                         }
                     }
 
-                    if (logFiles.Count == 0)
+                    if (Helper.IsAdministrator() && logFiles.Count == 0)
                     {
                         if (Helper.RawFileExists(log1))
                         {
@@ -215,6 +215,11 @@ namespace AppCompatCache
                         {
                             logFiles.Add(log2);
                         }
+                    }
+                    else
+                    {
+                        _logger.Fatal($"Log files not found and no administrator access to look for them!");
+                        Console.WriteLine();
                     }
 
                     if (logFiles.Count == 0)

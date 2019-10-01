@@ -22,5 +22,13 @@ namespace AppCompatCache
             return
                 $"#{CacheEntryPosition} (Path size: {PathSize}), Path: {Path}, Last modified (UTC):{LastModifiedTimeUTC}";
         }
+
+        public bool Duplicate { get; set; }
+        public string SourceFile { get; set; }
+
+        public string GetKey()
+        {
+            return $"{this.LastModifiedFILETIMEUTC}{this.Path.ToUpperInvariant()}";
+        }
     }
 }
