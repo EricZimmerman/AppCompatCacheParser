@@ -63,10 +63,10 @@ namespace AppCompatCache
                         //this is last update time, its not reported yet
                         index += 8;
 
-                        if (ce.LastModifiedTimeUTC.Year == 1601)
-                        {
-                            break;
-                        }
+//                        if (ce.LastModifiedTimeUTC.HasValue == false)
+//                        {
+//                            break;
+//                        }
 
                         ce.CacheEntryPosition = position;
                         ce.ControlSet = controlSet;

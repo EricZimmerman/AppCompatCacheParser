@@ -213,7 +213,7 @@ namespace AppCompatCacheParser
                 };
                 csv.Configuration.TypeConverterOptionsCache.AddOptions<CacheEntry>(o);
 
-                foo.Map(t => t.LastModifiedTimeUTC).ConvertUsing(t=>t.LastModifiedTimeUTC.ToString(_fluentCommandLineParser.Object.DateTimeFormat));
+                foo.Map(t => t.LastModifiedTimeUTC).ConvertUsing(t=>t.LastModifiedTimeUTC.HasValue ? t.LastModifiedTimeUTC.Value.ToString(_fluentCommandLineParser.Object.DateTimeFormat): "");
 
                 foo.Map(t => t.CacheEntrySize).Ignore();
                 foo.Map(t => t.Data).Ignore();

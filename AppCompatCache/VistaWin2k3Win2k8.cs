@@ -46,6 +46,12 @@ namespace AppCompatCache
 
                         ce.LastModifiedTimeUTC =
                             DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
+
+                        if (ce.LastModifiedTimeUTC.Value.Year == 1601)
+                        {
+                            ce.LastModifiedTimeUTC = null;
+                        }
+
                         index += 8;
 
                         // skip 4 unknown (insertion flags?)

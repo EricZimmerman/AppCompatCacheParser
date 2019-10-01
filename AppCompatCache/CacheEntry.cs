@@ -10,8 +10,8 @@ namespace AppCompatCache
         public AppCompatCache.InsertFlag InsertFlags { get; set; }
         public AppCompatCache.Execute Executed { get; set; }
         public int DataSize { get; set; }
-        public DateTimeOffset LastModifiedTimeUTC { get; set; }
-        public long LastModifiedFILETIMEUTC => LastModifiedTimeUTC.ToFileTime();
+        public DateTimeOffset? LastModifiedTimeUTC { get; set; }
+        public long LastModifiedFILETIMEUTC => LastModifiedTimeUTC.HasValue ? LastModifiedTimeUTC.Value.ToFileTime() : 0;
         public string Path { get; set; }
         public int PathSize { get; set; }
         public string Signature { get; set; }
