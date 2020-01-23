@@ -93,7 +93,7 @@ namespace AppCompatCacheParser
                 .SetDefault(-1);
 
             _fluentCommandLineParser.Setup(arg => arg.Debug)
-                .As('d')
+                .As("debug")
                 .WithDescription("Debug mode")
                 .SetDefault(false);
 
@@ -201,8 +201,8 @@ namespace AppCompatCacheParser
                 var outFilename = Path.Combine(_fluentCommandLineParser.Object.CsvDirectory, outFileBase);
 
                 var sw = new StreamWriter(outFilename);
-            
-                var csv = new CsvWriter(sw);
+
+                var csv = new CsvWriter(sw, CultureInfo.InvariantCulture);
                 csv.Configuration.HasHeaderRecord = true;
                 
 
