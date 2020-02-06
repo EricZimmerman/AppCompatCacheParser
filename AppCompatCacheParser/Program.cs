@@ -202,7 +202,7 @@ namespace AppCompatCacheParser
 
                 var sw = new StreamWriter(outFilename);
             
-                var csv = new CsvWriter(sw);
+                var csv = new CsvWriter(sw,CultureInfo.InvariantCulture);
                 csv.Configuration.HasHeaderRecord = true;
                 
 
