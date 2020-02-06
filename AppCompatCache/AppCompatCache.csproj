@@ -76,7 +76,7 @@
       <Version>4.1.0</Version>
     </PackageReference>
     <PackageReference Include="Fody">
-      <Version>6.0.5</Version>
+      <Version>6.1.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -87,14 +87,12 @@
       <Version>4.6.8</Version>
     </PackageReference>
     <PackageReference Include="Registry">
-      <Version>1.1.0.4</Version>
+      <Version>1.1.0.5</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Dependencies\RawCopy.dll" />
     <Content Include="Dependencies\RawCopy.pdb" />
-    <Content Include="Dependencies\Registry.dll" />
-    <Content Include="Dependencies\Registry.pdb" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
