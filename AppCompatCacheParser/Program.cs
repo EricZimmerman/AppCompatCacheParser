@@ -315,9 +315,15 @@ namespace AppCompatCacheParser
                 {
                     if (ex.Message.Contains("Administrator privileges not found"))
                     {
-                        logger.Fatal($"Could not access '{_fluentCommandLineParser.Object.HiveFile}' because it is in use");
+                        logger.Fatal($"Could not access '{_fluentCommandLineParser.Object.HiveFile}'. Does it exist?");
                         logger.Error("");
                         logger.Fatal("Rerun the program with Administrator privileges to try again\r\n");
+                    }
+                    else if (ex.Message.Contains("Invalid diskName:"))
+                    {
+                        logger.Fatal($"Could not access '{_fluentCommandLineParser.Object.HiveFile}'. Invalid disk!");
+                        logger.Error("");
+                        
                     }
                     else
                     {
