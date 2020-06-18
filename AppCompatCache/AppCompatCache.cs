@@ -204,23 +204,28 @@ namespace AppCompatCache
                         }
                     }
 
-                    if (Helper.IsAdministrator() && logFiles.Count == 0)
+                    if (logFiles.Count == 0 )
                     {
-                        if (Helper.RawFileExists(log1))
+                        if (Helper.IsAdministrator())
                         {
-                            logFiles.Add(log1);
-                        }
+                            if (Helper.RawFileExists(log1))
+                            {
+                                logFiles.Add(log1);
+                            }
 
-                        if (Helper.RawFileExists(log2))
-                        {
-                            logFiles.Add(log2);
+                            if (Helper.RawFileExists(log2))
+                            {
+                                logFiles.Add(log2);
+                            }
                         }
+                        else
+                        {
+                            _logger.Fatal($"Log files not found and no administrator access to look for them!");
+                            Console.WriteLine();
+                        }
+                        
                     }
-                    else
-                    {
-                        _logger.Fatal($"Log files not found and no administrator access to look for them!");
-                        Console.WriteLine();
-                    }
+                    
 
                     if (logFiles.Count == 0)
                     {
