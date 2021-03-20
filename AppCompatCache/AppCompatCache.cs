@@ -175,8 +175,12 @@ namespace AppCompatCache
                     }
 
                     rawFiles = Helper.GetFiles(files);
+                    var b = new byte[rawFiles.First().FileStream.Length];
 
-                    reg = new RegistryHive(rawFiles.First().FileBytes, rawFiles.First().InputFilename);
+                    rawFiles.First().FileStream.Read(b, 0, (int) rawFiles.First().FileStream.Length);
+
+
+                    reg = new RegistryHive(b, rawFiles.First().InputFilename);
                 }
 
                 if (reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
@@ -249,8 +253,10 @@ namespace AppCompatCache
                                 var lt = new List<TransactionLogFileInfo>();
                                 foreach (var rawCopyReturn in rawFiles.Skip(1).ToList())
                                 {
+                                    var b = new byte[rawCopyReturn.FileStream.Length];
+
                                     var tt = new TransactionLogFileInfo(rawCopyReturn.InputFilename,
-                                        rawCopyReturn.FileBytes);
+                                        b);
                                     lt.Add(tt);
                                 }
 
@@ -487,7 +493,9 @@ namespace AppCompatCache
 
                     var ff = Helper.GetFiles(l);
 
-                    var hive = new RegistryHiveOnDemand(ff.First().FileBytes, fileName);
+                    var b = new byte[ff.First().FileStream.Length];
+
+                    var hive = new RegistryHiveOnDemand(b, fileName);
                     var subKey = hive.GetKey("Select");
 
                     var currentCtlSet = int.Parse(subKey.Values.Single(c => c.ValueName == "Current").ValueData);

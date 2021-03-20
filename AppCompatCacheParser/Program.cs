@@ -203,17 +203,17 @@ namespace AppCompatCacheParser
                 var sw = new StreamWriter(outFilename);
             
                 var csv = new CsvWriter(sw,CultureInfo.InvariantCulture);
-                csv.Configuration.HasHeaderRecord = true;
+                
                 
 
-                var foo = csv.Configuration.AutoMap<CacheEntry>();
+                var foo = csv.Context.AutoMap<CacheEntry>();
                 var o = new TypeConverterOptions
                 {
                     DateTimeStyle = DateTimeStyles.AssumeUniversal & DateTimeStyles.AdjustToUniversal
                 };
-                csv.Configuration.TypeConverterOptionsCache.AddOptions<CacheEntry>(o);
+                csv.Context.TypeConverterOptionsCache.AddOptions<CacheEntry>(o);
 
-                foo.Map(t => t.LastModifiedTimeUTC).ConvertUsing(t=>t.LastModifiedTimeUTC.HasValue ? t.LastModifiedTimeUTC.Value.ToString(_fluentCommandLineParser.Object.DateTimeFormat): "");
+                foo.Map(t => t.LastModifiedTimeUTC).Convert(t=>t.Value.LastModifiedTimeUTC.HasValue ? t.Value.LastModifiedTimeUTC.Value.ToString(_fluentCommandLineParser.Object.DateTimeFormat): "");
 
                 foo.Map(t => t.CacheEntrySize).Ignore();
                 foo.Map(t => t.Data).Ignore();

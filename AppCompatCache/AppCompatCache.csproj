@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>AppCompatCache</RootNamespace>
     <AssemblyName>AppCompatCache</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
@@ -26,19 +26,19 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>embedded</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup />
   <ItemGroup>
-    <Reference Include="RawCopy, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Dependencies\RawCopy.dll</HintPath>
+    <Reference Include="RawCopy_ERZ_2_2_32">
+      <HintPath>Dependencies\RawCopy_ERZ_2_2_32.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -73,26 +73,29 @@
       <Version>2.2.6</Version>
     </PackageReference>
     <PackageReference Include="Costura.Fody">
-      <Version>4.1.0</Version>
+      <Version>5.1.0-alpha0409</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Fody">
-      <Version>6.2.0</Version>
+      <Version>6.4.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NFluent">
-      <Version>2.7.0</Version>
+      <Version>2.7.1</Version>
     </PackageReference>
     <PackageReference Include="NLog">
-      <Version>4.7.2</Version>
+      <Version>4.7.8</Version>
     </PackageReference>
     <PackageReference Include="Registry">
-      <Version>1.1.0.5</Version>
+      <Version>1.2.0.2</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Dependencies\RawCopy.dll" />
     <Content Include="Dependencies\RawCopy.pdb" />
+    <Content Include="Dependencies\RawCopy_ERZ_2_2_32.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

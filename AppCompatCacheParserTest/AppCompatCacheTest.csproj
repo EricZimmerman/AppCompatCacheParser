@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>AppCompatCacheTest</RootNamespace>
     <AssemblyName>AppCompatCacheTest</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
@@ -70,13 +70,13 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NFluent">
-      <Version>2.7.0</Version>
+      <Version>2.7.1</Version>
     </PackageReference>
     <PackageReference Include="NLog">
-      <Version>4.7.2</Version>
+      <Version>4.7.8</Version>
     </PackageReference>
     <PackageReference Include="NUnit">
-      <Version>3.12.0</Version>
+      <Version>3.13.1</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
