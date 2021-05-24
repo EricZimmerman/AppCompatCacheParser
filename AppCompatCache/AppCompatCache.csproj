@@ -1,108 +1,37 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{EF07492C-2992-4BFD-B93A-78C6CC8FDE7A}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AppCompatCache</RootNamespace>
-    <AssemblyName>AppCompatCache</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
+    <TargetFramework>net462</TargetFramework>
+    <AssemblyTitle>AppCompatCache</AssemblyTitle>
+    <Product>AppCompatCache</Product>
+    <Copyright>Copyright ©  2015</Copyright>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>embedded</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
-  <PropertyGroup />
   <ItemGroup>
-    <Reference Include="RawCopy_ERZ_2_2_32">
-      <HintPath>Dependencies\RawCopy_ERZ_2_2_32.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
+    <PackageReference Include="System.IO.Compression" Version="4.*" />
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.*" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.*" />
+    <PackageReference Include="System.Net.Http" Version="4.*" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Transactions" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AppCompatCache.cs" />
-    <Compile Include="CacheEntry.cs" />
-    <Compile Include="IAppCompatCache.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="VistaWin2k3Win2k8.cs" />
-    <Compile Include="Windows10.cs" />
-    <Compile Include="Windows7.cs" />
-    <Compile Include="Windows8x.cs" />
-    <Compile Include="WindowsXP.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="AlphaFS">
-      <Version>2.2.6</Version>
-    </PackageReference>
-    <PackageReference Include="Costura.Fody">
-      <Version>5.1.0-alpha0409</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    <PackageReference Include="AlphaFS" Version="2.2.6" />
+    <PackageReference Include="Costura.Fody" Version="5.2.0">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Fody">
-      <Version>6.4.0</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    <PackageReference Include="Fody" Version="6.5.1">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="NFluent">
-      <Version>2.7.1</Version>
-    </PackageReference>
-    <PackageReference Include="NLog">
-      <Version>4.7.8</Version>
-    </PackageReference>
-    <PackageReference Include="Registry">
-      <Version>1.2.0.2</Version>
-    </PackageReference>
+    <PackageReference Include="NFluent" Version="2.7.2" />
+    <PackageReference Include="NLog" Version="4.7.10" />
+    <PackageReference Include="RawCopy_ERZ" Version="1.0.0" />
+    <PackageReference Include="Registry" Version="1.2.1" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="Dependencies\RawCopy.dll" />
-    <Content Include="Dependencies\RawCopy.pdb" />
-    <Content Include="Dependencies\RawCopy_ERZ_2_2_32.dll" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
