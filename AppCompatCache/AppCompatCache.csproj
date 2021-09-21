@@ -24,8 +24,8 @@
   <ItemGroup>
     <PackageReference Include="AlphaFS" Version="2.2.6" />
     <PackageReference Include="NFluent" Version="2.7.2" />
-    <PackageReference Include="NLog" Version="4.7.10" />
+    <PackageReference Include="NLog" Version="4.7.11" />
     <PackageReference Include="RawCopy_ERZ" Version="1.0.0" />
-    <PackageReference Include="Registry" Version="1.2.1" />
+    <PackageReference Include="Registry" Version="1.2.2" />
   </ItemGroup>
 </Project>
