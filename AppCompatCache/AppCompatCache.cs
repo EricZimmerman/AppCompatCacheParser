@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Alphaleonis.Win32.Security;
 using NLog;
@@ -79,6 +80,11 @@ namespace AppCompatCache
 
             if (isLiveRegistry)
             {
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    throw new NotSupportedException("Live Registry support is not supported on non-Windows platforms.");
+                }
+                
                 var keyCurrUser = Microsoft.Win32.Registry.LocalMachine;
                 var subKey2 =
                     keyCurrUser.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatCache");
@@ -111,7 +117,6 @@ namespace AppCompatCache
             }
 
             RegistryHive reg;
-
 
             Privilege[] privileges = {Privilege.EnableDelegation, Privilege.Impersonate, Privilege.Tcb};
             using (new PrivilegeEnabler(Privilege.Backup, privileges))
@@ -459,6 +464,10 @@ namespace AppCompatCache
         {
             if (fileName.Length == 0)
             {
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    throw new NotSupportedException("'Filename' is required on non-Windows platforms.");
+                }
                 var keyCurrUser = Microsoft.Win32.Registry.LocalMachine;
                 var subKey = keyCurrUser.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\Environment");
 
