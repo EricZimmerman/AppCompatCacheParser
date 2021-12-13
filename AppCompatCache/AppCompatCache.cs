@@ -9,6 +9,7 @@ using NLog;
 using RawCopy;
 using Registry;
 using Registry.Abstractions;
+using ServiceStack;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -462,7 +463,7 @@ namespace AppCompatCache
 
         public static bool Is32Bit(string fileName, RegistryHive reg)
         {
-            if (fileName.Length == 0)
+            if (reg == null)
             {
                 if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
