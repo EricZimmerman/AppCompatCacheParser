@@ -5,100 +5,100 @@ using System.Linq;
 using System.Text;
 using Serilog;
 
-namespace AppCompatCache
+namespace AppCompatCache;
+
+public class WindowsXP : IAppCompatCache
 {
-    public class WindowsXP : IAppCompatCache
+    public WindowsXP(byte[] rawBytes, bool is32Bit, int controlSet)
     {
-        public WindowsXP(byte[] rawBytes, bool is32Bit, int controlSet)
+        Entries = new List<CacheEntry>();
+
+        var index = 4;
+        ControlSet = controlSet;
+
+        EntryCount = BitConverter.ToInt32(rawBytes, index);
+        index += 4;
+
+        var lruArrauEntries = BitConverter.ToUInt32(rawBytes, index);
+        index += 4;
+
+        index = 400;
+
+        var position = 0;
+
+
+        Log.Debug("**** 32 bit system?: {Is32Bit}",is32Bit);
+
+        Log.Debug("**** EntryCount found: {EntryCount}",EntryCount);
+
+        if (EntryCount == 0)
         {
-            Entries = new List<CacheEntry>();
+            return; 
+        }
 
-            var index = 4;
-            ControlSet = controlSet;
-
-            EntryCount = BitConverter.ToInt32(rawBytes, index);
-            index += 4;
-
-            var lruArrauEntries = BitConverter.ToUInt32(rawBytes, index);
-            index += 4;
-
-            index = 400;
-
-            var position = 0;
-
-
-            Log.Debug("**** 32 bit system?: {Is32Bit}",is32Bit);
-
-            Log.Debug("**** EntryCount found: {EntryCount}",EntryCount);
-
-            if (EntryCount == 0)
+        if (is32Bit)
+        {
+            while (index < rawBytes.Length)
             {
-                return; 
-            }
-
-            if (is32Bit)
-            {
-                while (index < rawBytes.Length)
+                try
                 {
-                    try
-                    {
-                        Log.Debug("**** At index position: {Index}",index);
+                    Log.Debug("**** At index position: {Index}",index);
 
-                        var ce = new CacheEntry {PathSize = 528};
+                    var ce = new CacheEntry {PathSize = 528};
 
 
-                        ce.Path = Encoding.Unicode.GetString(rawBytes, index, ce.PathSize).Split('\0').First().Replace('\0', ' ').Trim().Replace(@"\??\", "");
-                        index += 528;
+                    ce.Path = Encoding.Unicode.GetString(rawBytes, index, ce.PathSize).Split('\0').First().Replace('\0', ' ').Trim().Replace(@"\??\", "");
+                    index += 528;
 
-                        ce.LastModifiedTimeUTC =
-                            DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
-                        index += 8;
+                    ce.LastModifiedTimeUTC =
+                        DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
+                    index += 8;
 
-                        var fileSize = BitConverter.ToUInt64(rawBytes, index);
-                        index += 8;
+                    var fileSize = BitConverter.ToUInt64(rawBytes, index);
+                    index += 8;
 
-                        //                        ce.LastModifiedTimeUTC =
-                        //                            DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
-                        //this is last update time, its not reported yet
-                        index += 8;
+                    //                        ce.LastModifiedTimeUTC =
+                    //                            DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
+                    //this is last update time, its not reported yet
+                    index += 8;
 
 //                        if (ce.LastModifiedTimeUTC.HasValue == false)
 //                        {
 //                            break;
 //                        }
 
-                        ce.CacheEntryPosition = position;
-                        ce.ControlSet = controlSet;
+                    ce.CacheEntryPosition = position;
+                    ce.ControlSet = controlSet;
 
-                        ce.Executed = AppCompatCache.Execute.NA;
+                    ce.Executed = AppCompatCache.Execute.NA;
 
-                        Log.Debug("**** Adding cache entry for '{Path}' to Entries",ce.Path);
+                    Log.Debug("**** Adding cache entry for '{Path}' to Entries",ce.Path);
 
-                        Entries.Add(ce);
-                        position += 1;
+                    Entries.Add(ce);
+                    position += 1;
 
-                        if (Entries.Count == EntryCount)
-                        {
-                            break;
-                        }
-                    }
-                    catch (Exception ex)
+                    if (Entries.Count == EntryCount)
                     {
-                        Log.Error(ex,"Error parsing cache entry. Position: {Position} Index: {Index}, Error: {Message} ",position,index,ex.Message);
-                        //TODO Report this
-                        if (Entries.Count < EntryCount)
-                        {
-                            throw;
-                        }
-                        //take what we can get
                         break;
                     }
                 }
+                catch (Exception ex)
+                {
+                    Log.Error(ex,"Error parsing cache entry. Position: {Position} Index: {Index}, Error: {Message} ",position,index,ex.Message);
+                    //TODO Report this
+                    if (Entries.Count < EntryCount)
+                    {
+                        throw;
+                    }
+                    //take what we can get
+                    break;
+                }
             }
-            else
-            {
-                throw new Exception(
-                    "64 bit XP support not available. send the hive to saericzimmerman@gmail.com so support can be added");
+        }
+        else
+        {
+            throw new Exception(
+                "64 bit XP support not available. send the hive to saericzimmerman@gmail.com so support can be added");
 //                while (index < rawBytes.Length)
 //                {
 //                    try
@@ -155,11 +155,10 @@ namespace AppCompatCache
 //                        break;
 //                    }
 //                }
-            }
         }
-
-        public List<CacheEntry> Entries { get; }
-        public int EntryCount { get; }
-        public int ControlSet { get; }
     }
+
+    public List<CacheEntry> Entries { get; }
+    public int EntryCount { get; }
+    public int ControlSet { get; }
 }

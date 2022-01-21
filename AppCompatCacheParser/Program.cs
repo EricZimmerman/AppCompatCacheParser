@@ -22,7 +22,7 @@ namespace AppCompatCacheParser;
 
 internal class Program
 {
-    private static readonly string BaseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+    //private static readonly string BaseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
     private static string[] _args;
         
@@ -32,9 +32,9 @@ internal class Program
         $"\r\nhttps://github.com/EricZimmerman/AppCompatCacheParser";
 
     private static readonly string Footer = @"Examples: AppCompatCacheParser.exe --csv c:\temp -t -c 2" + "\r\n\t " +
-                                            @" AppCompatCacheParser.exe --csv c:\temp --csvf results.csv" + "\r\n\t " +
+                                            @"   AppCompatCacheParser.exe --csv c:\temp --csvf results.csv" + "\r\n\t " +
                                             "\r\n\t" +
-                                            "  Short options (single letter) are prefixed with a single dash. Long commands are prefixed with two dashes\r\n";
+                                            "    Short options (single letter) are prefixed with a single dash. Long commands are prefixed with two dashes\r\n";
 
     private static RootCommand _rootCommand;
 
@@ -74,7 +74,7 @@ internal class Program
                 
             new Option<string>(
                 "--csvf",
-                "File name to save CSV formatted results to. When present, overrides default name\r\n"),
+                "File name to save CSV formatted results to. When present, overrides default name"),
                 
             new Option<int>(
                 "--c",
@@ -84,7 +84,7 @@ internal class Program
             new Option<bool>(
                 "-t",
                 getDefaultValue:()=>false,
-                description: "Sorts last modified timestamps in descending order\r\n"),
+                description: "Sorts last modified timestamps in descending order"),
                 
             new Option<string>(
                 "--dt",
@@ -94,7 +94,7 @@ internal class Program
             new Option<bool>(
                 "--nl",
                 getDefaultValue:()=>false,
-                "When true, ignore transaction log files for dirty hives. Default is FALSE\r\n"),
+                "When true, ignore transaction log files for dirty hives"),
             
             new Option<bool>(
                 "--debug",
@@ -254,15 +254,13 @@ internal class Program
             {
                 foreach (var appCompatCach in appCompat.Caches)
                 {
-                    if (debug)
-                    {
-                        appCompatCach.PrintDump();
-                    }
-                        
+                  
+                  Log.Verbose("Dumping cache details: {@Details}",appCompat);
+                  
                     try
                     {
                         Log.Information(
-                            "Found {.Count:N0} cache entries for {OperatingSystem} in ControlSet00{ControlSet}",appCompatCach.Entries.Count,appCompat.OperatingSystem,appCompat.ControlSet);
+                            "Found {Count:N0} cache entries for {OperatingSystem} in {ControlSet}",appCompatCach.Entries.Count,appCompat.OperatingSystem,$"ControlSet00{appCompatCach.ControlSet}");
 
                         if (t)
                         {
@@ -347,21 +345,5 @@ internal class Program
                 
         }
     }
-
-}
-
-public class ApplicationArguments
-{
-    public string HiveFile { get; set; }
-    public bool SortTimestamps { get; set; }
-    public int ControlSet { get; set; }
-    public string CsvDirectory { get; set; }
-    public string CsvName { get; set; }
-
-    public bool Debug { get; set; }
-
-    public bool NoTransLogs { get; set; } = false;
-
-    public string DateTimeFormat { get; set; }
 
 }
