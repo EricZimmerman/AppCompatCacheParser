@@ -397,9 +397,8 @@ public class AppCompatCache
         //TODO check minimum length of rawBytes and throw exception if not enough data
 
         signature = Encoding.ASCII.GetString(rawBytes, 128, 4);
-
             
-        Log.Debug("**** Signature {Signature}, Sig num 0x{SigNum}",signature,$"0x{sigNum:X}");
+        Log.Debug("**** Signature {Signature}, Sig num {SigNum}",signature,$"0x{sigNum:X}");
 
         if (sigNum == 0xDEADBEEF) //DEADBEEF, WinXp
         {

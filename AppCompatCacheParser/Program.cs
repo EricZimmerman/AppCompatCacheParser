@@ -154,10 +154,11 @@ internal class Program
         }
         else
         {
-            
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                throw new NotSupportedException("Live Registry support is not available on non-Windows systems");
+                Log.Fatal("Live Registry support is not available on non-Windows systems");
+                Environment.Exit(0);
+                //throw new NotSupportedException("Live Registry support is not available on non-Windows systems");
             }
         }
 
