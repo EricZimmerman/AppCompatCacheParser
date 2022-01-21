@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 using AppCompatCache;
 using CsvHelper.TypeConversion;
 using Exceptionless;
-using NLog;
-using NLog.Config;
-using NLog.Targets;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 using ServiceStack;
 using ServiceStack.Text;
 using CsvWriter = CsvHelper.CsvWriter;
@@ -39,29 +39,7 @@ internal class Program
     private static RootCommand _rootCommand;
 
 
-    private static void SetupNLog()
-    {
-        if (File.Exists( Path.Combine(BaseDirectory,"Nlog.config")))
-        {
-            return;
-        }
-        var config = new LoggingConfiguration();
-        var loglevel = LogLevel.Info;
-
-        var layout = @"${message}";
-
-        var consoleTarget = new ColoredConsoleTarget();
-
-        config.AddTarget("console", consoleTarget);
-
-        consoleTarget.Layout = layout;
-
-        var rule1 = new LoggingRule("*", loglevel, consoleTarget);
-        config.LoggingRules.Add(rule1);
-
-        LogManager.Configuration = config;
-    }
-
+    
     private static bool IsAdministrator()
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -78,8 +56,7 @@ internal class Program
     private static async Task Main(string[] args)
     {
         ExceptionlessClient.Default.Startup("7iL4b0Me7W8PbFflftqWgfQCIdf55flrT2O11zIP");
-        SetupNLog();
-
+    
         _args = args;
         
         var csvOption = new Option<string>(
@@ -136,11 +113,34 @@ internal class Program
         _rootCommand.Handler = System.CommandLine.NamingConventionBinder.CommandHandler.Create<string,string,string,int, bool,string,bool,bool,bool>(DoWork);
             
         await _rootCommand.InvokeAsync(args);
+        
+        Log.CloseAndFlush();
     }
 
     private static void DoWork(string f,string csv,string csvf,int c, bool t,string dt,bool nl,bool debug,bool trace)
     {
-        var logger = LogManager.GetCurrentClassLogger();
+        var levelSwitch = new LoggingLevelSwitch();
+
+        var template = "{Message:lj}{NewLine}{Exception}";
+
+        if (debug)
+        {
+            levelSwitch.MinimumLevel = LogEventLevel.Debug;
+            template = "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message:lj}{NewLine}{Exception}";
+        }
+
+        if (trace)
+        {
+            levelSwitch.MinimumLevel = LogEventLevel.Verbose;
+            template = "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message:lj}{NewLine}{Exception}";
+        }
+        
+        var conf = new LoggerConfiguration()
+            .WriteTo.Console(outputTemplate: template)
+            .MinimumLevel.ControlledBy(levelSwitch);
+      
+        Log.Logger = conf.CreateLogger();
+        
         var hiveToProcess = "Live Registry";
         
         if (f?.Length > 0)
@@ -148,7 +148,7 @@ internal class Program
             hiveToProcess = f;
             if (!File.Exists(f))
             {
-                logger.Warn($"'{f}' not found. Exiting");
+                Log.Warning("'{F}' not found. Exiting",f);
                 return;
             }
         }
@@ -161,30 +161,20 @@ internal class Program
             }
         }
 
-        logger.Info(Header);
-        logger.Info("");
-        logger.Info($"Command line: {string.Join(" ", _args)}\r\n");
+        Log.Information("{Header}",Header);
+        Console.WriteLine();
+        Log.Information("Command line: {Args}",string.Join(" ", _args));
+        Console.WriteLine();
 
         if (IsAdministrator() == false)
         {
-            logger.Fatal($"Warning: Administrator privileges not found!\r\n");
+            Log.Fatal($"Warning: Administrator privileges not found!");
+            Console.WriteLine();
         }
 
-        logger.Info($"Processing hive '{hiveToProcess}'");
+        Log.Information("Processing hive '{HiveToProcess}'",hiveToProcess);
 
-        logger.Info("");
-
-        if (debug)
-        {
-            LogManager.Configuration.LoggingRules.First().EnableLoggingForLevel(LogLevel.Debug);
-        }
-            
-        if (trace)
-        {
-            LogManager.Configuration.LoggingRules.First().EnableLoggingForLevel(LogLevel.Trace);
-        }
-            
-        LogManager.ReconfigExistingLoggers();
+        Console.WriteLine();
 
         try
         {
@@ -256,7 +246,7 @@ internal class Program
             csvWriter.WriteHeader<CacheEntry>();
             csvWriter.NextRecord();
 
-            logger.Debug($"**** Found {appCompat.Caches.Count} caches");
+            Log.Debug("**** Found {Count} caches",appCompat.Caches.Count);
 
             var cacheKeys = new HashSet<string>();
 
@@ -271,8 +261,8 @@ internal class Program
                         
                     try
                     {
-                        logger.Info(
-                            $"Found {appCompatCach.Entries.Count:N0} cache entries for {appCompat.OperatingSystem} in ControlSet00{appCompatCach.ControlSet}");
+                        Log.Information(
+                            "Found {.Count:N0} cache entries for {OperatingSystem} in ControlSet00{ControlSet}",appCompatCach.Entries.Count,appCompat.OperatingSystem,appCompat.ControlSet);
 
                         if (t)
                         {
@@ -304,7 +294,7 @@ internal class Program
                     }
                     catch (Exception ex)
                     {
-                        logger.Error($"There was an error: Error message: {ex.Message} Stack: {ex.StackTrace}");
+                        Log.Error(ex,"There was an error: Error message: {Message}",ex.Message);
 
                         try
                         {
@@ -312,19 +302,22 @@ internal class Program
                         }
                         catch (Exception ex1)
                         {
-                            logger.Error($"Couldn't PrintDump {ex1.Message} Stack: {ex1.StackTrace}");
-
+                            Log.Error(ex1,"Couldn't PrintDump: {Message}",ex1.Message);
                         }
                     }
                 }
                 sw.Flush();
                 sw.Close();
 
-                logger.Warn($"\r\nResults saved to '{outFilename}'\r\n");
+                Console.WriteLine();
+                Log.Warning("Results saved to '{OutFilename}'",outFilename);
+                Console.WriteLine();
             }
             else
             {
-                logger.Warn($"\r\nNo caches were found!\r\n");
+                Console.WriteLine();
+                Log.Warning("No caches were found!");
+                Console.WriteLine();
             }
                 
         }
@@ -334,20 +327,20 @@ internal class Program
             {
                 if (ex.Message.Contains("Administrator privileges not found"))
                 {
-                    logger.Fatal($"Could not access '{f}'. Does it exist?");
-                    logger.Error("");
-                    logger.Fatal("Rerun the program with Administrator privileges to try again\r\n");
+                    Log.Fatal("Could not access '{F}'. Does it exist?",f);
+                    Console.WriteLine();
+                    Log.Fatal("Rerun the program with Administrator privileges to try again");
+                    Console.WriteLine();
                 }
                 else if (ex.Message.Contains("Invalid diskName:"))
                 {
-                    logger.Fatal($"Could not access '{f}'. Invalid disk!");
-                    logger.Error("");
+                    Log.Fatal("Could not access '{F}'. Invalid disk!",f);
+                    Console.WriteLine();
                 }
                 else
                 {
-                    logger.Error($"There was an error: {ex.Message}");
-                    logger.Error($"Stacktrace: {ex.StackTrace}");
-                    logger.Info("");
+                    Log.Error(ex,"There was an error: {Message}",ex.Message);
+                    Console.WriteLine();
                 }
 
             }

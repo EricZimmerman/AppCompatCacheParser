@@ -1,15 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>net462;net6.0</TargetFrameworks>
     <AssemblyTitle>AppCompatCacheParser</AssemblyTitle>
     <Company>Eric Zimmerman</Company>
     <Product>AppCompatCacheParser</Product>
     <Description>Shimcache parser</Description>
     <LangVersion>10</LangVersion>
-    <Copyright>Copyright © 2022</Copyright>
-    <AssemblyVersion>1.4.5.0</AssemblyVersion>
-    <FileVersion>1.4.5.0</FileVersion>
+    <Copyright>Eric Zimmerman</Copyright>
+    <FileVersion>1.5.0.0</FileVersion>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -41,8 +40,8 @@
     <PackageReference Include="Fody" Version="6.6.0">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="NLog" Version="4.7.13" />
-    <PackageReference Include="NLog.Schema" Version="4.7.13" />
+    <PackageReference Include="Serilog" Version="2.10.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
     <PackageReference Include="ServiceStack.Text" Version="5.13.2" />
     <PackageReference Include="System.Buffers" Version="4.5.1" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.6.0-preview3.19128.7" />

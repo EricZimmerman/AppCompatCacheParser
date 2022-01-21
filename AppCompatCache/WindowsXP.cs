@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using NLog;
+using Serilog;
 
 namespace AppCompatCache
 {
@@ -26,11 +26,10 @@ namespace AppCompatCache
 
             var position = 0;
 
-            var log1 = LogManager.GetCurrentClassLogger();
 
-            log1.Debug($@"**** 32 bit system?: {is32Bit}");
+            Log.Debug("**** 32 bit system?: {Is32Bit}",is32Bit);
 
-            log1.Debug($@"**** EntryCount found: {EntryCount}");
+            Log.Debug("**** EntryCount found: {EntryCount}",EntryCount);
 
             if (EntryCount == 0)
             {
@@ -43,7 +42,7 @@ namespace AppCompatCache
                 {
                     try
                     {
-                        log1.Debug($@"**** At index position: {index}");
+                        Log.Debug("**** At index position: {Index}",index);
 
                         var ce = new CacheEntry {PathSize = 528};
 
@@ -73,7 +72,7 @@ namespace AppCompatCache
 
                         ce.Executed = AppCompatCache.Execute.NA;
 
-                        log1.Debug($@"**** Adding cache entry for '{ce.Path}' to Entries");
+                        Log.Debug("**** Adding cache entry for '{Path}' to Entries",ce.Path);
 
                         Entries.Add(ce);
                         position += 1;
@@ -85,9 +84,7 @@ namespace AppCompatCache
                     }
                     catch (Exception ex)
                     {
-                        var _log = LogManager.GetCurrentClassLogger();
-                        _log.Error(
-                            $"Error parsing cache entry. Position: {position} Index: {index}, Error: {ex.Message} ");
+                        Log.Error(ex,"Error parsing cache entry. Position: {Position} Index: {Index}, Error: {Message} ",position,index,ex.Message);
                         //TODO Report this
                         if (Entries.Count < EntryCount)
                         {

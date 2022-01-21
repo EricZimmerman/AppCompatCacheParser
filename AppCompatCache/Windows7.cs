@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using NLog;
+using Serilog;
 
 namespace AppCompatCache
 {
@@ -89,9 +89,9 @@ namespace AppCompatCache
                     }
                     catch (Exception ex)
                     {
-                        var _log = LogManager.GetCurrentClassLogger();
-                        _log.Error(
-                            $"Error parsing cache entry. Position: {position} Index: {index}, Error: {ex.Message} ");
+                        
+                        Log.Error(ex,
+                            "Error parsing cache entry. Position: {Position} Index: {Index}, Error: {Message} ",position,index,ex.Message);
 
                         if (Entries.Count < EntryCount)
                         {
@@ -165,9 +165,10 @@ namespace AppCompatCache
                     }
                     catch (Exception ex)
                     {
-                        var _log = LogManager.GetCurrentClassLogger();
-                        _log.Error(
-                            $"Error parsing cache entry. Position: {position} Index: {index}, Error: {ex.Message} ");
+                     
+                        Log.Error(ex,
+                            "Error parsing cache entry. Position: {Position} Index: {Index}, Error: {Message} ",position,index,ex.Message);
+                        
                         //TODO Report this
                         if (Entries.Count < EntryCount)
                         {

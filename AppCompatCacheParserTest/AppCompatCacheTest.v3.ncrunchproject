@@ -1,9 +1,0 @@
-﻿<ProjectConfiguration>
-  <Settings>
-    <BuildProcessArchitecture>x64</BuildProcessArchitecture>
-    <ImplicitProjectDependencyPathsRelativeToSolutionDirectory>
-      <Value>AppCompatCache\AppCompatCache.csproj</Value>
-    </ImplicitProjectDependencyPathsRelativeToSolutionDirectory>
-    <PreviouslyBuiltSuccessfully>True</PreviouslyBuiltSuccessfully>
-  </Settings>
-</ProjectConfiguration>

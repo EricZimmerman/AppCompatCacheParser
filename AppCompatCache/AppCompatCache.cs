@@ -5,11 +5,11 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using Alphaleonis.Win32.Security;
-using NLog;
+
 using RawCopy;
 using Registry;
 using Registry.Abstractions;
-using ServiceStack;
+using Serilog;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -59,7 +59,6 @@ namespace AppCompatCache
             Unknown
         }
 
-        private readonly Logger _logger = LogManager.GetLogger("AppCompatCache");
 
         public AppCompatCache(byte[] rawBytes, int controlSet, bool is32Bit)
         {
@@ -152,7 +151,7 @@ namespace AppCompatCache
                         throw new UnauthorizedAccessException("Administrator privileges not found!");
                     }
 
-                    _logger.Warn($"'{filename}' is in use. Rerouting...\r\n");
+                    Log.Warning("'{Filename}' is in use. Rerouting...",filename);
 
                     var files = new List<string>();
                     files.Add(filename);
@@ -180,7 +179,7 @@ namespace AppCompatCache
                         files.Add(logFile);
                     }
 
-                    rawFiles = Helper.GetFiles(files);
+                    rawFiles = Helper.GetRawFiles(files);
                     var b = new byte[rawFiles.First().FileStream.Length];
 
                     rawFiles.First().FileStream.Read(b, 0, (int) rawFiles.First().FileStream.Length);
@@ -230,8 +229,7 @@ namespace AppCompatCache
                         }
                         else
                         {
-                            _logger.Fatal($"Log files not found and no administrator access to look for them!");
-                            Console.WriteLine();
+                            Log.Fatal("Log files not found and no administrator access to look for them!");
                         }
                         
                     }
@@ -241,13 +239,13 @@ namespace AppCompatCache
                     {
                         if (noLogs == false)
                         {
-                            _logger.Warn(
+                            Log.Warning(
                                 "Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
                             throw new Exception(
                                 "Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
                         }
 
-                        _logger.Warn(
+                        Log.Warning(
                             "Registry hive is dirty and no transaction logs were found in the same directory. Data may be missing! Continuing anyways...");
                     }
                     else
@@ -275,7 +273,7 @@ namespace AppCompatCache
                         }
                         else
                         {
-                            _logger.Warn(
+                            Log.Warning(
                                 "Registry hive is dirty and transaction logs were found in the same directory, but --nl was provided. Data may be missing! Continuing anyways...");
                         }
                     }
@@ -304,8 +302,8 @@ namespace AppCompatCache
 
                 if (controlSetIds.Count > 1)
                 {
-                    _logger.Warn(
-                        $"***The following ControlSet00x keys will be exported: {string.Join(",", controlSetIds)}. Use -c to process keys individually\r\n");
+                    Log.Warning(
+                        "***The following ControlSet00x keys will be exported: {Cs}. Use -c to process keys individually",string.Join(",", controlSetIds));
                 }
             }
             else
@@ -330,12 +328,12 @@ namespace AppCompatCache
             var is32 = Is32Bit(filename, reg);
 
 
-            _logger.Debug($@"**** Found {controlSetIds.Count} ids to process");
+            Log.Debug("**** Found {Count} ids to process",controlSetIds.Count);
 
 
             foreach (var id in controlSetIds)
             {
-                _logger.Debug($@"**** Processing id {id}");
+                Log.Debug("**** Processing id {Id}",id);
 
                 //  var hive2 = new RegistryHiveOnDemand(filename);
 
@@ -343,23 +341,23 @@ namespace AppCompatCache
 
                 if (subKey == null)
                 {
-                    _logger.Debug(@"**** Initial subkey null, getting appCompatability key");
+                    Log.Debug("**** Initial subkey null, getting appCompatability key");
                     subKey = reg.GetKey($@"ControlSet00{id}\Control\Session Manager\AppCompatibility");
                 }
 
-                _logger.Debug(@"**** Looking  AppCompatcache value");
+                Log.Debug("**** Looking  AppCompatcache value");
 
                 var val = subKey?.Values.SingleOrDefault(c => c.ValueName == "AppCompatCache");
 
                 if (val != null)
                 {
-                    _logger.Debug(@"**** Found AppCompatcache value");
+                    Log.Debug("**** Found AppCompatcache value");
                     rawBytes = val.ValueDataRaw;
                 }
 
                 if (rawBytes == null)
                 {
-                    _logger.Error($@"'AppCompatCache' value not found for 'ControlSet00{id}'! Exiting");
+                    Log.Error("'AppCompatCache' value not found for 'ControlSet00{Id}'! Exiting",id);
                 }
 
                 var cache = Init(rawBytes, is32, id);
@@ -391,14 +389,14 @@ namespace AppCompatCache
 
             signature = Encoding.ASCII.GetString(rawBytes, 128, 4);
 
-            var log1 = LogManager.GetCurrentClassLogger();
-            log1.Debug($@"**** Signature {signature}, Sig num 0x{sigNum:X}");
+            
+            Log.Debug("**** Signature {Signature}, Sig num 0x{SigNum}",signature,$"0x{sigNum:X}");
 
             if (sigNum == 0xDEADBEEF) //DEADBEEF, WinXp
             {
                 OperatingSystem = OperatingSystemVersion.WindowsXP;
 
-                log1.Debug(@"**** Processing XP hive");
+                Log.Debug("**** Processing XP hive");
 
                 appCache = new WindowsXP(rawBytes, is32, controlSet);
             }
@@ -501,7 +499,7 @@ namespace AppCompatCache
                     var l = new List<string>();
                     l.Add(fileName);
 
-                    var ff = Helper.GetFiles(l);
+                    var ff = Helper.GetRawFiles(l);
 
                     var b = new byte[ff.First().FileStream.Length];
 
