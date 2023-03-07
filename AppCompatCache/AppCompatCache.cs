@@ -62,7 +62,7 @@ public class AppCompatCache
         Windows80_Windows2012,
         Windows81_Windows2012R2,
         Windows10,
-        Windows10Creators,
+        Windows10C_11,
         Unknown
     }
 
@@ -447,7 +447,7 @@ public class AppCompatCache
 
             if (offsetToEntries == 0x34)
             {
-                OperatingSystem = OperatingSystemVersion.Windows10Creators;
+                OperatingSystem = OperatingSystemVersion.Windows10C_11;
             }
 
             signature = Encoding.ASCII.GetString(rawBytes, offsetToEntries, 4);
