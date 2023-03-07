@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Serilog;
@@ -75,7 +76,14 @@ public class Windows10 : IAppCompatCache
                 ce.Data = rawBytes.Skip(index).Take(ce.DataSize).ToArray();
                 index += ce.DataSize;
 
-                ce.Executed = AppCompatCache.Execute.NA;
+                //if the last 4 bytes of Data is 1, it indicates execution
+                var exec= BitConverter.ToInt32(ce.Data, ce.Data.Length - 4) == 1;
+
+                ce.Executed = AppCompatCache.Execute.No;
+                if (exec)
+                {
+                    ce.Executed = AppCompatCache.Execute.Yes; 
+                }
 
                 ce.ControlSet = controlSet;
                 ce.CacheEntryPosition = position;
