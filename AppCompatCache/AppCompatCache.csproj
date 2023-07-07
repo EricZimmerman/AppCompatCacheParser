@@ -4,8 +4,10 @@
     <AssemblyTitle>AppCompatCache</AssemblyTitle>
     <Product>AppCompatCache</Product>
     <Copyright>Eric Zimmerman</Copyright>
+    <Authors>Eric Zimmerman</Authors>
     <Version>1.2.1</Version>
     <LangVersion>10</LangVersion>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
     <Description>Parses Windows AppCompatCache data from SYSTEM hive</Description>
     <PackageProjectUrl>https://github.com/EricZimmerman/AppCompatCacheParser</PackageProjectUrl>
