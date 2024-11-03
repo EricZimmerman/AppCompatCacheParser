@@ -22,10 +22,11 @@
     <Content Include="TestFiles\ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NFluent" Version="3.0.1.352" />
-    <PackageReference Include="Serilog" Version="3.0.1" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
-    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NFluent" Version="3.0.4" />
+    <PackageReference Include="Serilog" Version="4.1.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="NUnit" Version="4.2.2" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AppCompatCache\AppCompatCache.csproj" />
