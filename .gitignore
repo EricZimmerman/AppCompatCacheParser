@@ -189,14 +189,6 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
-/AppCompatCacheParser.saproj
-/.vs/AppCompatCacheParser/v15/Server/sqlite3/db.lock
-/.vs/AppCompatCacheParser/v15/Server/sqlite3/storage.ide
-/.vs/AppCompatCacheParser/v15/Server/sqlite3/storage.ide-shm
-/.vs/AppCompatCacheParser/v15/Server/sqlite3/storage.ide-wal
-/.vs/AppCompatCacheParser/v15/sqlite3/db.lock
-/.vs/AppCompatCacheParser/v15/sqlite3/storage.ide
-/.vs/AppCompatCacheParser/v15/sqlite3/storage.ide-wal
-/.vs/AppCompatCacheParser/v15/sqlite3/storage.ide-shm
-/.vs/AppCompatCacheParser/v16/Server/sqlite3
-/.vs/AppCompatCacheParser/DesignTimeBuild
+
+/.vs/
+
