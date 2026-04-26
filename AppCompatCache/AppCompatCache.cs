@@ -327,7 +327,7 @@ public class AppCompatCache
 
             if (subKey == null)
             {
-                throw new Exception($"Could not find ControlSet00{ControlSet}. Exiting");
+                throw new Exception($"Could not find ControlSet00{ControlSet}");
             }
 
             controlSetIds.Add(ControlSet);

@@ -331,13 +331,22 @@ internal class Program
                     Log.Fatal("Rerun the program with Administrator privileges to try again");
                     Console.WriteLine();
                 }
+
+                else if (ex.Message.Contains("Could not find ControlSet"))
+                {
+                    Console.WriteLine();
+                    Log.Fatal("{Msg}. Exiting",ex.Message);
+                    Console.WriteLine();
+                }
                 else if (ex.Message.Contains("Invalid diskName:"))
                 {
+                    Console.WriteLine();
                     Log.Fatal("Could not access '{F}'. Invalid disk!",f);
                     Console.WriteLine();
                 }
                 else
                 {
+                    Console.WriteLine();
                     Log.Error(ex,"There was an error: {Message}",ex.Message);
                     Console.WriteLine();
                 }

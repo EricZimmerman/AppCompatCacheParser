@@ -25,6 +25,7 @@ public class Windows10 : IAppCompatCache
         {
             ExpectedEntries = BitConverter.ToInt32(rawBytes, 0x28);
         }
+      
 
         var index = offsetToRecords;
         ControlSet = controlSet;
