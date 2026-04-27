@@ -20,7 +20,7 @@ bld/
 # Roslyn cache directories
 *.ide/
 
-.idea/
+workspace.xml
 
 # MSTest test Results
 [Tt]est[Rr]esult*/

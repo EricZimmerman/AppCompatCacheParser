@@ -5,7 +5,7 @@
     <Product>AppCompatCache</Product>
     <Copyright>Eric Zimmerman</Copyright>
     <Authors>Eric Zimmerman</Authors>
-    <Version>1.2.4</Version>
+    <Version>2026.5.0</Version>
     <LangVersion>10</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -21,12 +21,12 @@
 
   <ItemGroup>
     <PackageReference Include="AlphaFS.New" Version="2.3.0" />
-    <PackageReference Include="ERZHelpers" Version="1.5.3" />
+    <PackageReference Include="ERZHelpers" Version="2026.5.3" />
 
     <PackageReference Include="NFluent" Version="3.1.0" />
     <PackageReference Include="Serilog" Version="4.3.1" />
 
-    <PackageReference Include="Registry" Version="1.5.2" />
+    <PackageReference Include="Registry" Version="2026.5.0" />
 
     <None Include="../README.md" Pack="true" PackagePath=""/>
     <None Include="../icon.png" Pack="true" PackagePath=""/>
