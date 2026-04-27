@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.CommandLine.Help;
+using System.CommandLine.Invocation;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -27,7 +29,7 @@ internal class Program
     private static string[] _args;
         
     private static readonly string Header =
-        $"AppCompatCache Parser version {Assembly.GetExecutingAssembly().GetName().Version}" +
+        $"AppCompatCache Parser version {Assembly.GetExecutingAssembly().GetName().Version.ToString(3)}" +
         $"\r\n\r\nAuthor: Eric Zimmerman (saericzimmerman@gmail.com)" +
         $"\r\nhttps://github.com/EricZimmerman/AppCompatCacheParser";
 
@@ -58,61 +60,83 @@ internal class Program
         ExceptionlessClient.Default.Startup("7iL4b0Me7W8PbFflftqWgfQCIdf55flrT2O11zIP");
     
         _args = args;
+   
+        var fOpt = new Option<string>("-f")
+        {
+            Description = "File to process. Either this or -d is required"
+        };
         
-        var csvOption = new Option<string>(
-            "--csv",
-            "Directory to save CSV formatted results to. Be sure to include the full path in double quotes");
-        csvOption.IsRequired = true;
+        var csvOpt = new Option<string>(
+            "--csv")
+        {
+            Description = "Directory to save CSV formatted results to. Be sure to include the full path in double quotes"
+        
+        };
+
+        var csvfOpt = new Option<string>(
+            "--csvf")
+        {
+            Description   = "File name to save CSV formatted results to. When present, overrides default name\r\n"
+        };
+        
+          
+        var cOpt = new Option<int>("-c")
+        {
+            Description = "The ControlSet to parse. Default is to extract all control sets",
+            DefaultValueFactory = _ => -1
+        };
+          
+        var tOpt = new Option<bool>("-t")
+        {
+            Description = "Sorts last modified timestamps in descending order",
+            DefaultValueFactory = _ => false
+        };
+        
+        var dtOpt = new Option<string>(
+            "--dt"){
+            Description =        "The custom date/time format to use when displaying time stamps. See https://goo.gl/CNVq0k for options. Default is: yyyy-MM-dd HH:mm:ss",
+            DefaultValueFactory = _ => "yyyy-MM-dd HH:mm:ss"
+        };
+        
+        var nlOpt = new Option<bool>("--nl")
+        {
+            Description = "When true, ignore transaction log files for dirty hives",
+            DefaultValueFactory = _ => false
+        };
+        
+        
+        var debugOpt = new Option<bool>("--debug")
+        {
+            Description = "Show debug information during processing",
+            DefaultValueFactory = _ => false
+        };
+        var traceOpt = new Option<bool>("--trace")
+        {
+            Description = "Show trace information during processing",
+            DefaultValueFactory = _ => false
+        };
             
         _rootCommand = new RootCommand
         {
-            new Option<string>(
-                "-f",
-                "Full path to SYSTEM hive to process. If this option is not specified, the live Registry will be used"),
-                
-            csvOption,
-                
-            new Option<string>(
-                "--csvf",
-                "File name to save CSV formatted results to. When present, overrides default name"),
-                
-            new Option<int>(
-                "--c",
-                getDefaultValue:()=>-1,
-                "The ControlSet to parse. Default is to extract all control sets"),
-                
-            new Option<bool>(
-                "-t",
-                getDefaultValue:()=>false,
-                description: "Sorts last modified timestamps in descending order"),
-                
-            new Option<string>(
-                "--dt",
-                getDefaultValue:()=>"yyyy-MM-dd HH:mm:ss",
-                "The custom date/time format to use when displaying time stamps. See https://goo.gl/CNVq0k for options"),
-            
-            new Option<bool>(
-                "--nl",
-                getDefaultValue:()=>false,
-                "When true, ignore transaction log files for dirty hives"),
-            
-            new Option<bool>(
-                "--debug",
-                getDefaultValue:()=>false,
-                "Show debug information during processing"),
-            
-            new Option<bool>(
-                "--trace",
-                getDefaultValue:()=>false,
-                "Show trace information during processing"),
-                
-        };
+           fOpt,
+           csvOpt,
+           csvfOpt,
+           cOpt,
+           tOpt,
+          dtOpt,
+          nlOpt,
+          debugOpt,
+          traceOpt
+          };
             
         _rootCommand.Description = Header + "\r\n\r\n" + Footer;
 
-        _rootCommand.Handler = System.CommandLine.NamingConventionBinder.CommandHandler.Create<string,string,string,int, bool,string,bool,bool,bool>(DoWork);
+        _rootCommand.SetAction(result => DoWork(result.GetValue(fOpt), result.GetValue(csvOpt), result.GetValue(csvfOpt),
+            result.GetValue(cOpt), result.GetValue(tOpt), result.GetValue(dtOpt), result.GetValue(nlOpt),
+            result.GetValue(debugOpt),result.GetValue(traceOpt)));
             
-        await _rootCommand.InvokeAsync(args);
+
+        var foo = _rootCommand.Parse(args).InvokeAsync();
         
         Log.CloseAndFlush();
     }
@@ -140,6 +164,15 @@ internal class Program
             .MinimumLevel.ControlledBy(levelSwitch);
       
         Log.Logger = conf.CreateLogger();
+        
+        if (string.IsNullOrEmpty(csv))
+        {
+            var aaa = new CustomHelpAction(new HelpAction());
+            aaa.Invoke(_rootCommand.Parse("--csv is required. Exiting"));
+
+            return;
+        }
+
         
         var hiveToProcess = "Live Registry";
         
@@ -355,5 +388,22 @@ internal class Program
                 
         }
     }
+    private class CustomHelpAction : SynchronousCommandLineAction
+    {
+        private readonly HelpAction _defaultHelp;
 
+        public CustomHelpAction(HelpAction action)
+        {
+            _defaultHelp = action;
+        }
+
+        public override int Invoke(ParseResult parseResult)
+        {
+            var result = _defaultHelp.Invoke(parseResult);
+
+            Log.Warning("{Msg}", string.Join(" ",parseResult.Tokens));
+
+            return result;
+        }
+    }
 }
