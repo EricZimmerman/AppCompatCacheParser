@@ -14,11 +14,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c7070cab-4620-49b6-9dea-c2a94e1535ba" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.AppCompatCacheParser/.idea/projectSettingsUpdater.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.AppCompatCacheParser/.idea/projectSettingsUpdater.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.AppCompatCacheParser/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.AppCompatCacheParser/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AppCompatCache/AppCompatCache.cs" beforeDir="false" afterPath="$PROJECT_DIR$/AppCompatCache/AppCompatCache.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AppCompatCache/Windows10.cs" beforeDir="false" afterPath="$PROJECT_DIR$/AppCompatCache/Windows10.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AppCompatCacheParser/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/AppCompatCacheParser/Program.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,14 +39,15 @@
     &quot;assignee&quot;: &quot;EricZimmerman&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/EricZimmerman/AppCompatCacheParser.git",
-    "accountId": "97b621c7-01be-473d-b6b4-47119e32c766"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/EricZimmerman/AppCompatCacheParser.git&quot;,
+    &quot;accountId&quot;: &quot;97b621c7-01be-473d-b6b4-47119e32c766&quot;
   }
-}]]></component>
+}</component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/e75a5575ba872c8ea754c015cb363850e6c661f39569712d5b74aaca67263c/String.Manipulation.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/AppCompatCacheParser/Program.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -82,7 +79,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "RiderNuGetOptionsPageId",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -119,7 +116,8 @@
       <updated>1639367175946</updated>
       <workItem from="1639367188809" duration="3029000" />
       <workItem from="1642773352194" duration="4353000" />
-      <workItem from="1777167810737" duration="1383000" />
+      <workItem from="1777167810737" duration="3671000" />
+      <workItem from="1777316125395" duration="1158000" />
     </task>
     <task id="LOCAL-00001" summary="net6 work">
       <created>1639368004037</created>
@@ -280,7 +278,39 @@
       <option name="project" value="LOCAL" />
       <updated>1736698591301</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="nuget, tweak error message when controlset not found">
+      <option name="closed" value="true" />
+      <created>1777169380091</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1777169380091</updated>
+    </task>
+    <task id="LOCAL-00023" summary="nuget, tweak error message when controlset not found">
+      <option name="closed" value="true" />
+      <created>1777169513658</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1777169513658</updated>
+    </task>
+    <task id="LOCAL-00024" summary="2026.5.0">
+      <option name="closed" value="true" />
+      <created>1777317157535</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1777317157535</updated>
+    </task>
+    <task id="LOCAL-00025" summary="2026.5.0">
+      <option name="closed" value="true" />
+      <created>1777317199492</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1777317199492</updated>
+    </task>
+    <option name="localTasksCounter" value="26" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -304,7 +334,9 @@
     <MESSAGE value="ignore" />
     <MESSAGE value="a" />
     <MESSAGE value="nuget" />
-    <option name="LAST_COMMIT_MESSAGE" value="nuget" />
+    <MESSAGE value="nuget, tweak error message when controlset not found" />
+    <MESSAGE value="2026.5.0" />
+    <option name="LAST_COMMIT_MESSAGE" value="2026.5.0" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -347,19 +379,6 @@
             </endOffsets>
           </properties>
           <option name="timeStamp" value="7" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/AppCompatCache/Windows10.cs</url>
-          <line>28</line>
-          <properties documentPath="D:\Code\AppCompatCacheParser\AppCompatCache\Windows10.cs" containingFunctionPresentation="Constructor 'Windows10'">
-            <startOffsets>
-              <option value="637" />
-            </startOffsets>
-            <endOffsets>
-              <option value="657" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="9" />
         </line-breakpoint>
         <breakpoint enabled="true" type="DotNet_Exception_Breakpoints">
           <properties exception="System.OperationCanceledException" breakIfHandledByOtherCode="false" displayValue="System.OperationCanceledException" />
