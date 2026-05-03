@@ -63,7 +63,7 @@ internal class Program
    
         var fOpt = new Option<string>("-f")
         {
-            Description = "File to process. Either this or -d is required"
+            Description = "Full path to SYSTEM hive to process. If this option is not specified, the live Registry will be used"
         };
         
         var csvOpt = new Option<string>(
