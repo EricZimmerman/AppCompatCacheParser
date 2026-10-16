@@ -2,30 +2,76 @@
 
 ## Command Line Interface
 
-    AppCompatCache Parser version 1.4.4.0
-    
-    Author: Eric Zimmerman (saericzimmerman@gmail.com)
-    https://github.com/EricZimmerman/AppCompatCacheParser
-    
-            c               The ControlSet to parse. Default is to extract all control sets.
-            f               Full path to SYSTEM hive to process. If this option is not specified, the live Registry will be used
-            t               Sorts last modified timestamps in descending order
-    
-            csv             Directory to save CSV formatted results to. Required
-            csvf            File name to save CSV formatted results to. When present, overrides default name
-    
-            debug           Debug mode
-            dt              The custom date/time format to use when displaying timestamps. See https://goo.gl/CNVq0k for options. Default is: yyyy-MM-dd HH:mm:ss
-            nl              When true, ignore transaction log files for dirty hives. Default is FALSE
-    
+    Description:
+      AppCompatCache Parser version 2026.10.0
+
+      Author: Eric Zimmerman (saericzimmerman@gmail.com)
+      https://github.com/EricZimmerman/AppCompatCacheParser
+
+    Usage:
+      AppCompatCacheParser [options]
+
+    Options:
+      -f <f>          Full path to SYSTEM hive to process. If this option is not specified, the live Registry will be used
+      --csv <csv>     Directory to save CSV formatted results to. Be sure to include the full path in double quotes
+      --csvf <csvf>   File name to save CSV formatted results to. When present, overrides default name
+      -c <c>          The ControlSet to parse. Default is to extract all control sets [default: -1]
+      -t              Sorts last modified timestamps in descending order
+      --dt <dt>       The custom date/time format to use when displaying time stamps. See https://goo.gl/CNVq0k for options [default: yyyy-MM-dd HH:mm:ss]
+      --nl            When true, ignore transaction log files for dirty hives
+      --debug         Show debug information during processing
+      --trace         Show trace information during processing
+      -?, -h, --help  Show help and usage information
+      --version       Show version information
+
     Examples: AppCompatCacheParser.exe --csv c:\temp -t -c 2
               AppCompatCacheParser.exe --csv c:\temp --csvf results.csv
-    
+
               Short options (single letter) are prefixed with a single dash. Long commands are prefixed with two dashes
+
+AppCompatCacheParser exits with 0 when the hive was processed, and 1 for bad arguments, a hive that can't be read (or is dirty without its transaction logs, unless `--nl` is given), no cache found, or a CSV that can't be written.
+
+### Output
+
+| Column | |
+| --- | --- |
+| ControlSet | The ControlSet00x the cache is in |
+| CacheEntryPosition | The entry's place in the cache, most recently added or updated first (Windows XP: in the order of its LRU list) |
+| Path | The file's path. Packaged (UWP) app entries on Windows 10 and 11 have tab separated fields here instead, and no time |
+| LastModifiedTimeUTC | The file's last modified time ($STANDARD_INFORMATION) when it was added to the cache |
+| Executed | Windows 10/11: the entry's data has tag 0x100. Windows 7, 8.x and 64 bit Vista/2008: insertion flag 0x2. NA where the format has neither |
+| Duplicate | The same path and time is already in an earlier row (another control set, for example) |
+| SourceFile | The hive |
+| FromSlack | Recovered from the slack of the value's cell: no longer in the cache (Windows 8 to 11; only entries that are not in it) |
+
+## Library
+
+The `AppCompatCache` NuGet package parses the value from a hive, or the raw value:
+
+```csharp
+var acc = new AppCompatCache.AppCompatCache(@"C:\Temp\SYSTEM", -1, false); //all control sets, replaying transaction logs
+foreach (var cache in acc.Caches)
+{
+    foreach (var e in cache.Entries.Concat(cache.SlackEntries))
+    {
+        Console.WriteLine($"{e.ControlSet} {e.CacheEntryPosition} {e.Path} {e.LastModifiedTimeUTC} {e.Executed}");
+    }
+
+    foreach (var error in cache.ParseErrors) //entries that could not be read
+    {
+        Console.WriteLine(error);
+    }
+}
+
+var fromValue = new AppCompatCache.AppCompatCache(File.ReadAllBytes("AppCompatCache.bin"), 1, false);
+```
+
+- A value that is too small or not a known format throws `AppCompatCacheParseException`. A damaged entry is listed in `ParseErrors`, and the entries before it (or, for the fixed size formats of Windows XP to 7, the others) are still returned.
+- Windows 10/11 entry data is a list of (tag, size, value) records: `Windows10.DataTags(entry.Data)`.
 
 ## Documentation
 
-AppCompatCache (ShimCache) parser. Supports Windows XP, Windows 7 (x86 and x64), Windows 8.x, Windows 10, and Windows 11.
+AppCompatCache (ShimCache) parser. Supports Windows XP, Windows Server 2003, Vista and 2008, Windows 7 (x86 and x64), Windows 8.x, Windows 10, and Windows 11.
 
 [Introducing AppCompatCacheParser](https://binaryforay.blogspot.com/2015/05/introducing-appcompatcacheparser.html)
 
@@ -43,7 +89,7 @@ AppCompatCache (ShimCache) parser. Supports Windows XP, Windows 7 (x86 and x64),
 
 [Locked file support added to AmcacheParser, AppCompatCacheParser, MFTECmd, ShellBags Explorer (and SBECmd), and Registry Explorer (and RECmd)](https://binaryforay.blogspot.com/2019/01/locked-file-support-added-to.html)
 
-[Windows Registry Knowledge Base](https://github.com/libyal/winreg-kb/wiki/Application-Compatibility-Cache-key)
+[Windows Registry Knowledge Base](https://github.com/libyal/winreg-kb/blob/main/docs/sources/system-keys/Application-compatibility-cache.md)
 
 # Download Eric Zimmerman's Tools
 

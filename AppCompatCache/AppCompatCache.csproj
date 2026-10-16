@@ -1,45 +1,39 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyTitle>AppCompatCache</AssemblyTitle>
     <Product>AppCompatCache</Product>
     <Copyright>Eric Zimmerman</Copyright>
     <Authors>Eric Zimmerman</Authors>
-    <Version>2026.5.0</Version>
     <LangVersion>10</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Parses Windows AppCompatCache data from SYSTEM hive</Description>
     <PackageProjectUrl>https://github.com/EricZimmerman/AppCompatCacheParser</PackageProjectUrl>
-    <PackageTags>shnimcache, appcompatcache</PackageTags>
+    <RepositoryUrl>https://github.com/EricZimmerman/AppCompatCacheParser</RepositoryUrl>
+    <PackageTags>shimcache, appcompatcache</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <!-- If all members are not documented, you can disable the compiler warnings -->
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="AppCompatCacheTest" />
     <PackageReference Include="AlphaFS.New" Version="2.3.0" />
     <PackageReference Include="ERZHelpers" Version="2026.5.3" />
-
-    <PackageReference Include="NFluent" Version="3.1.0" />
-    <PackageReference Include="Serilog" Version="4.3.1" />
-
+    <PackageReference Include="Serilog" Version="4.4.0" />
     <PackageReference Include="Registry" Version="2026.5.0" />
 
-    <None Include="../README.md" Pack="true" PackagePath=""/>
-    <None Include="../icon.png" Pack="true" PackagePath=""/>
-    <PackageReference Include="DotNet.ReproducibleBuilds" Version="2.0.2">
+    <None Include="../README.md" Pack="true" PackagePath="" />
+    <None Include="../icon.png" Pack="true" PackagePath="" />
+    <PackageReference Include="DotNet.ReproducibleBuilds" Version="2.0.5">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MinVer" Version="7.0.0">
+    <PackageReference Include="MinVer" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
 </Project>
-

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace AppCompatCache;
 
@@ -11,6 +11,9 @@ public class CacheEntry
     public AppCompatCache.Execute Executed { get; set; }
     public int DataSize { get; set; }
     public DateTimeOffset? LastModifiedTimeUTC { get; set; }
+
+    /// <summary>Windows XP only: when the entry was last updated (the LRU array orders entries by it)</summary>
+    public DateTimeOffset? LastUpdateTimeUTC { get; set; }
     public long LastModifiedFILETIMEUTC => LastModifiedTimeUTC.HasValue ? LastModifiedTimeUTC.Value.ToFileTime() : 0;
     public string Path { get; set; }
     public int PathSize { get; set; }
@@ -24,10 +27,13 @@ public class CacheEntry
     }
 
     public bool Duplicate { get; set; }
+
+    /// <summary>Recovered from the slack of the value's cell (see <see cref="Slack" />), so no longer in the cache</summary>
+    public bool FromSlack { get; set; }
     public string SourceFile { get; set; }
 
     public string GetKey()
     {
-        return $"{this.LastModifiedFILETIMEUTC}{this.Path.ToUpperInvariant()}";
+        return $"{LastModifiedFILETIMEUTC}{Path?.ToUpperInvariant()}";
     }
 }

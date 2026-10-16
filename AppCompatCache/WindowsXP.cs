@@ -1,164 +1,82 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using Serilog;
 
 namespace AppCompatCache;
 
+/// <summary>
+///     Windows XP (signature 0xDEADBEEF; 64 bit XP uses the Windows 2003 format): a 400 byte header (number of slots,
+///     number of entries in the LRU array, the LRU array of slot numbers, most recently used first), then 96 slots of
+///     552 bytes: a 528 byte UTF-16 path, last modified FILETIME, file size, last update FILETIME. Entries are returned
+///     in LRU order, like the other versions' (most recent first)
+/// </summary>
 public class WindowsXP : IAppCompatCache
 {
+    private const int HeaderSize = 400;
+    private const int SlotSize = 552;
+
     public WindowsXP(byte[] rawBytes, bool is32Bit, int controlSet)
     {
         Entries = new List<CacheEntry>();
-
-        var index = 4;
+        ParseErrors = new List<string>();
         ControlSet = controlSet;
 
-        EntryCount = BitConverter.ToInt32(rawBytes, index);
-        index += 4;
+        var slots = (int)Bytes.U32(rawBytes, 4, "Number of slots");
+        EntryCount = (int)Bytes.U32(rawBytes, 8, "Number of LRU entries");
 
-        var lruArrauEntries = BitConverter.ToUInt32(rawBytes, index);
-        index += 4;
+        Log.Debug("**** Slots: {Slots}, entries in the LRU array: {EntryCount}", slots, EntryCount);
 
-        index = 400;
-
-        var position = 0;
-
-
-        Log.Debug("**** 32 bit system?: {Is32Bit}",is32Bit);
-
-        Log.Debug("**** EntryCount found: {EntryCount}",EntryCount);
-
-        if (EntryCount == 0)
+        //the LRU array is in the header, after these 16 bytes
+        var lruMax = (HeaderSize - 16) / 4;
+        if (EntryCount > lruMax)
         {
-            return; 
+            ParseErrors.Add($"The LRU array has {EntryCount} entries, but there is room for {lruMax}");
+            EntryCount = lruMax;
         }
 
-        if (is32Bit)
+        var seen = new HashSet<uint>();
+        for (var position = 0; position < EntryCount; position++)
         {
-            while (index < rawBytes.Length)
+            var slot = Bytes.U32(rawBytes, 16 + position * 4, "LRU array");
+            var at = HeaderSize + (long)slot * SlotSize;
+            try
             {
-                try
+                if (seen.Add(slot) == false)
                 {
-                    Log.Debug("**** At index position: {Index}",index);
-
-                    var ce = new CacheEntry {PathSize = 528};
-
-
-                    ce.Path = Encoding.Unicode.GetString(rawBytes, index, ce.PathSize).Split('\0').First().Replace('\0', ' ').Trim().Replace(@"\??\", "");
-                    index += 528;
-
-                    ce.LastModifiedTimeUTC =
-                        DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
-                    index += 8;
-
-                    var fileSize = BitConverter.ToUInt64(rawBytes, index);
-                    index += 8;
-
-                    //                        ce.LastModifiedTimeUTC =
-                    //                            DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
-                    //this is last update time, its not reported yet
-                    index += 8;
-
-//                        if (ce.LastModifiedTimeUTC.HasValue == false)
-//                        {
-//                            break;
-//                        }
-
-                    ce.CacheEntryPosition = position;
-                    ce.ControlSet = controlSet;
-
-                    ce.Executed = AppCompatCache.Execute.NA;
-
-                    Log.Debug("**** Adding cache entry for '{Path}' to Entries",ce.Path);
-
-                    Entries.Add(ce);
-                    position += 1;
-
-                    if (Entries.Count == EntryCount)
-                    {
-                        break;
-                    }
+                    throw new AppCompatCacheParseException($"Slot {slot} is in the LRU array more than once", 16 + position * 4, "LRU array");
                 }
-                catch (Exception ex)
+
+                Bytes.Need(rawBytes, at, SlotSize, $"Slot {slot}");
+
+                var path = Bytes.Utf16(rawBytes, at, 528, "Path");
+                var end = path.IndexOf('\0');
+                var ce = new CacheEntry
                 {
-                    Log.Error(ex,"Error parsing cache entry. Position: {Position} Index: {Index}, Error: {Message} ",position,index,ex.Message);
-                    //TODO Report this
-                    if (Entries.Count < EntryCount)
-                    {
-                        throw;
-                    }
-                    //take what we can get
-                    break;
-                }
+                    PathSize = 528,
+                    Path = Bytes.CleanPath((end >= 0 ? path.Substring(0, end) : path).Trim()),
+                    LastModifiedTimeUTC = Bytes.FileTime(Bytes.I64(rawBytes, at + 528, "Last modified time")),
+                    DataSize = 0,
+                    LastUpdateTimeUTC = Bytes.FileTime(Bytes.I64(rawBytes, at + 544, "Last update time")),
+                    CacheEntryPosition = position,
+                    ControlSet = controlSet,
+                    Executed = AppCompatCache.Execute.NA
+                };
+
+                Entries.Add(ce);
             }
-        }
-        else
-        {
-            throw new Exception(
-                "64 bit XP support not available. send the hive to saericzimmerman@gmail.com so support can be added");
-//                while (index < rawBytes.Length)
-//                {
-//                    try
-//                    {
-//                        var ce = new CacheEntry {PathSize = BitConverter.ToUInt16(rawBytes, index)};
-//
-//                        index += 2;
-//
-//                        var maxPathSize = BitConverter.ToUInt16(rawBytes, index);
-//                        index += 2;
-//
-//
-//                        var pathOffset = BitConverter.ToInt32(rawBytes, index);
-//                        index += 4;
-//
-//                        ce.LastModifiedTimeUTC =
-//                            DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
-//                        index += 8;
-//
-//                        // skip 4 unknown (insertion flags?)
-//                        index += 4;
-//
-//                        // skip 4 unknown (shim flags?)
-//                        index += 4;
-//
-//                        var ceDataSize = BitConverter.ToUInt32(rawBytes, index);
-//                        index += 4;
-//
-//                        var dataOffset = BitConverter.ToUInt32(rawBytes, index);
-//                        index += 4;
-//
-//                        ce.Path = Encoding.Unicode.GetString(rawBytes, pathOffset, ce.PathSize);
-//
-//                        if (ce.LastModifiedTimeUTC.Year == 1601)
-//                        {
-//                            break;
-//                        }
-//
-//                        ce.CacheEntryPosition = position;
-//                        Entries.Add(ce);
-//                        position += 1;
-//
-//
-//                        if (Entries.Count == EntryCount)
-//                        {
-//                            break;
-//                        }
-//                    }
-//                    catch (Exception ex)
-//                    {
-//                        //TODO Report this
-//                        Debug.WriteLine(ex.Message);
-//                        //take what we can get
-//                        break;
-//                    }
-//                }
+            catch (Exception ex)
+            {
+                Log.Error("Error parsing cache entry. Position: {Position} Slot: {Slot}, Error: {Message}", position, slot, ex.Message);
+                ParseErrors.Add($"Entry {position} (slot {slot}): {ex.Message}");
+            }
         }
     }
 
     public List<CacheEntry> Entries { get; }
+
+    /// <summary>Always empty: entries in this format can't be recognized in slack</summary>
+    public List<CacheEntry> SlackEntries { get; } = new();
     public int EntryCount { get; }
     public int ControlSet { get; }
+    public List<string> ParseErrors { get; }
 }

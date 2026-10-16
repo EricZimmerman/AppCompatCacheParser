@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="AppCompatCache/AppCompatCache.csproj" />
+  <Project Path="AppCompatCacheParser/AppCompatCacheParser.csproj" />
+  <Project Path="AppCompatCacheParserTest/AppCompatCacheTest.csproj" />
+</Solution>

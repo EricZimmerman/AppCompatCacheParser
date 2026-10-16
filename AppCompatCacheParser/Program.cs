@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Help;
@@ -55,7 +55,7 @@ internal class Program
     }
 
 
-    private static async Task Main(string[] args)
+    private static async Task<int> Main(string[] args)
     {
         ExceptionlessClient.Default.Startup("7iL4b0Me7W8PbFflftqWgfQCIdf55flrT2O11zIP");
     
@@ -136,12 +136,15 @@ internal class Program
             result.GetValue(debugOpt),result.GetValue(traceOpt)));
             
 
-        var foo = _rootCommand.Parse(args).InvokeAsync();
-        
+        var exitCode = await _rootCommand.Parse(args).InvokeAsync();
+
         Log.CloseAndFlush();
+
+        return exitCode;
     }
 
-    private static void DoWork(string f,string csv,string csvf,int c, bool t,string dt,bool nl,bool debug,bool trace)
+    /// <returns>0 when the hive was processed, 1 when it could not be (or no cache was found, or the CSV could not be written)</returns>
+    private static int DoWork(string f,string csv,string csvf,int c, bool t,string dt,bool nl,bool debug,bool trace)
     {
         var levelSwitch = new LoggingLevelSwitch();
 
@@ -170,7 +173,7 @@ internal class Program
             var aaa = new CustomHelpAction(new HelpAction());
             aaa.Invoke(_rootCommand.Parse("--csv is required. Exiting"));
 
-            return;
+            return 1;
         }
 
         
@@ -182,7 +185,7 @@ internal class Program
             if (!File.Exists(f))
             {
                 Log.Warning("'{F}' not found. Exiting",f);
-                return;
+                return 1;
             }
         }
         else
@@ -190,8 +193,7 @@ internal class Program
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 Log.Fatal("Live Registry support is not available on non-Windows systems");
-                Environment.Exit(0);
-                //throw new NotSupportedException("Live Registry support is not available on non-Windows systems");
+                return 1;
             }
         }
 
@@ -248,110 +250,97 @@ internal class Program
 
             var outFilename = Path.Combine(csv, outFileBase);
 
-            var sw = new StreamWriter(outFilename);
-            
-            var csvWriter = new CsvWriter(sw,CultureInfo.InvariantCulture);
-
-            var foo = csvWriter.Context.AutoMap<CacheEntry>();
-            var o = new TypeConverterOptions
-            {
-                DateTimeStyle = DateTimeStyles.AssumeUniversal & DateTimeStyles.AdjustToUniversal
-            };
-            csvWriter.Context.TypeConverterOptionsCache.AddOptions<CacheEntry>(o);
-
-            foo.Map(entry => entry.LastModifiedTimeUTC).Convert(entry=>entry.Value.LastModifiedTimeUTC.HasValue ? entry.Value.LastModifiedTimeUTC.Value.ToString(dt): "");
-
-            foo.Map(entry => entry.CacheEntrySize).Ignore();
-            foo.Map(entry => entry.Data).Ignore();
-            foo.Map(entry => entry.InsertFlags).Ignore();
-            foo.Map(entry => entry.DataSize).Ignore();
-            foo.Map(entry => entry.LastModifiedFILETIMEUTC).Ignore();
-            foo.Map(entry => entry.PathSize).Ignore();
-            foo.Map(entry => entry.Signature).Ignore();
-
-            foo.Map(entry => entry.ControlSet).Index(0);
-            foo.Map(entry => entry.CacheEntryPosition).Index(1);
-            foo.Map(entry => entry.Path).Index(2);
-            foo.Map(entry => entry.LastModifiedTimeUTC).Index(3);
-            foo.Map(entry => entry.Executed).Index(4);
-            foo.Map(entry => entry.Duplicate).Index(5);
-            foo.Map(entry => entry.SourceFile).Index(6);
-
-            csvWriter.WriteHeader<CacheEntry>();
-            csvWriter.NextRecord();
-
             Log.Debug("**** Found {Count} caches",appCompat.Caches.Count);
 
-            var cacheKeys = new HashSet<string>();
-
-            if (appCompat.Caches.Any())
-            {
-                foreach (var appCompatCach in appCompat.Caches)
-                {
-                  
-                  Log.Verbose("Dumping cache details: {@Details}",appCompat);
-                  
-                    try
-                    {
-                        Log.Information(
-                            "Found {Count:N0} cache entries for {OperatingSystem} in {ControlSet}",appCompatCach.Entries.Count,appCompat.OperatingSystem,$"ControlSet00{appCompatCach.ControlSet}");
-
-                        if (t)
-                        {
-                            foreach (var cacheEntry in appCompatCach.Entries)
-                            {
-                                cacheEntry.SourceFile = hiveToProcess;
-                                cacheEntry.Duplicate = cacheKeys.Contains(cacheEntry.GetKey());
-
-                                cacheKeys.Add(cacheEntry.GetKey());
-
-                                csvWriter.WriteRecord(cacheEntry);
-                                csvWriter.NextRecord();
-                            }
-
-                        }
-                        else
-                        {
-                            foreach (var cacheEntry in appCompatCach.Entries)
-                            {
-                                cacheEntry.SourceFile = hiveToProcess;
-                                cacheEntry.Duplicate = cacheKeys.Contains(cacheEntry.GetKey());
-
-                                cacheKeys.Add(cacheEntry.GetKey());
-
-                                csvWriter.WriteRecord(cacheEntry);
-                                csvWriter.NextRecord();
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex,"There was an error: Error message: {Message}",ex.Message);
-
-                        try
-                        {
-                            appCompatCach.PrintDump();
-                        }
-                        catch (Exception ex1)
-                        {
-                            Log.Error(ex1,"Couldn't PrintDump: {Message}",ex1.Message);
-                        }
-                    }
-                }
-                sw.Flush();
-                sw.Close();
-
-                Console.WriteLine();
-                Log.Warning("Results saved to '{OutFilename}'",outFilename);
-                Console.WriteLine();
-            }
-            else
+            if (appCompat.Caches.Any() == false)
             {
                 Console.WriteLine();
                 Log.Warning("No caches were found!");
                 Console.WriteLine();
+                return 1;
             }
-                
+
+            using (var sw = new StreamWriter(outFilename))
+            {
+                var csvWriter = new CsvWriter(sw,CultureInfo.InvariantCulture);
+
+                var foo = csvWriter.Context.AutoMap<CacheEntry>();
+                var o = new TypeConverterOptions
+                {
+                    DateTimeStyle = DateTimeStyles.AssumeUniversal & DateTimeStyles.AdjustToUniversal
+                };
+                csvWriter.Context.TypeConverterOptionsCache.AddOptions<CacheEntry>(o);
+
+                foo.Map(entry => entry.LastModifiedTimeUTC).Convert(entry=>entry.Value.LastModifiedTimeUTC.HasValue ? entry.Value.LastModifiedTimeUTC.Value.ToString(dt): "");
+
+                foo.Map(entry => entry.CacheEntrySize).Ignore();
+                foo.Map(entry => entry.Data).Ignore();
+                foo.Map(entry => entry.InsertFlags).Ignore();
+                foo.Map(entry => entry.DataSize).Ignore();
+                foo.Map(entry => entry.LastModifiedFILETIMEUTC).Ignore();
+                foo.Map(entry => entry.LastUpdateTimeUTC).Ignore();
+                foo.Map(entry => entry.PathSize).Ignore();
+                foo.Map(entry => entry.Signature).Ignore();
+
+                foo.Map(entry => entry.ControlSet).Index(0);
+                foo.Map(entry => entry.CacheEntryPosition).Index(1);
+                foo.Map(entry => entry.Path).Index(2);
+                foo.Map(entry => entry.LastModifiedTimeUTC).Index(3);
+                foo.Map(entry => entry.Executed).Index(4);
+                foo.Map(entry => entry.Duplicate).Index(5);
+                foo.Map(entry => entry.SourceFile).Index(6);
+                foo.Map(entry => entry.FromSlack).Index(7);
+
+                csvWriter.WriteHeader<CacheEntry>();
+                csvWriter.NextRecord();
+
+                var cacheKeys = new HashSet<string>();
+
+                foreach (var appCompatCach in appCompat.Caches)
+                {
+                    Log.Verbose("Dumping cache details: {@Details}",appCompat);
+
+                    Log.Information(
+                        "Found {Count:N0} cache entries for {OperatingSystem} in {ControlSet}",appCompatCach.Entries.Count,appCompat.OperatingSystem,$"ControlSet00{appCompatCach.ControlSet}");
+
+                    foreach (var parseError in appCompatCach.ParseErrors)
+                    {
+                        Log.Warning("ControlSet00{ControlSet}: {Error}",appCompatCach.ControlSet,parseError);
+                    }
+
+                    if (appCompatCach.SlackEntries.Count > 0)
+                    {
+                        Log.Information("Recovered {Count:N0} entries that are no longer in the cache from its value's slack in {ControlSet}",appCompatCach.SlackEntries.Count,$"ControlSet00{appCompatCach.ControlSet}");
+                    }
+
+                    //-t: newest last modified time first (entries without one last); the cache's own order otherwise. Entries
+                    //from slack come after the cache's, in the same order
+                    IEnumerable<CacheEntry> Sorted(List<CacheEntry> list) => t
+                        ? list.OrderByDescending(e => e.LastModifiedTimeUTC.HasValue).ThenByDescending(e => e.LastModifiedTimeUTC)
+                        : list;
+
+                    var entries = Sorted(appCompatCach.Entries).Concat(Sorted(appCompatCach.SlackEntries));
+
+                    foreach (var cacheEntry in entries)
+                    {
+                        cacheEntry.SourceFile = hiveToProcess;
+                        cacheEntry.Duplicate = cacheKeys.Contains(cacheEntry.GetKey());
+
+                        cacheKeys.Add(cacheEntry.GetKey());
+
+                        csvWriter.WriteRecord(cacheEntry);
+                        csvWriter.NextRecord();
+                    }
+                }
+
+                sw.Flush();
+            }
+
+            Console.WriteLine();
+            Log.Warning("Results saved to '{OutFilename}'",outFilename);
+            Console.WriteLine();
+
+            return 0;
         }
         catch (Exception ex)
         {
@@ -371,6 +360,12 @@ internal class Program
                     Log.Fatal("{Msg}. Exiting",ex.Message);
                     Console.WriteLine();
                 }
+                else if (ex is AppCompatCacheParseException)
+                {
+                    Console.WriteLine();
+                    Log.Error("{Message}",ex.Message);
+                    Console.WriteLine();
+                }
                 else if (ex.Message.Contains("Invalid diskName:"))
                 {
                     Console.WriteLine();
@@ -385,9 +380,11 @@ internal class Program
                 }
 
             }
-                
+
+            return 1;
         }
     }
+
     private class CustomHelpAction : SynchronousCommandLineAction
     {
         private readonly HelpAction _defaultHelp;

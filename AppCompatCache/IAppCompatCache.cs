@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace AppCompatCache;
 
@@ -13,4 +13,10 @@ public interface IAppCompatCache
     int EntryCount { get; }
 
     int ControlSet { get; }
+
+    /// <summary>Entries recovered from the slack of the value's cell (Windows 8 to 11) that are no longer in the cache</summary>
+    List<CacheEntry> SlackEntries { get; }
+
+    /// <summary>Entries that could not be read (the ones before them are in <see cref="Entries" />)</summary>
+    List<string> ParseErrors { get; }
 }
