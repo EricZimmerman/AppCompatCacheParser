@@ -105,6 +105,7 @@ public class CorpusTests
         }
 
         hives.Should().NotBeEmpty();
-        failures.Should().BeEmpty();
+        //SYSTEM_BROKEN_Blanco, from an image that ended before the value's data: the value is " END OF IMG!PAST" filler
+        failures.Should().OnlyContain(t => t.Contains("Unable to determine operating system") && t.Contains("20-45-4E-44-20-4F-46-20-49-4D-47"));
     }
 }

@@ -46,7 +46,7 @@ The layouts are libyal's winreg-kb (`Application-compatibility-cache.md`); the f
 - `FormatTests` (with `CacheBuilder`, which builds values in each format): executed tags, entries with little data, truncation, layout detection, XP LRU order, bad input, random damage, slack. Add regression tests here.
 - `SampleTests`: the raw values in `TestFiles/*.bin` (also in the DFIR Artifact Museum).
 - `HiveTests`: the Museum's dirty Windows 11 SYSTEM hive with its logs (gzipped in `TestFiles/DFIRArtifactMuseum`, MIT; see the README there), through the library and AppCompatCacheParser.dll (exit codes, CSV, `-t`).
-- `CorpusTests`: every SYSTEM hive (file type 0, so not the logs) in `Corpus/Registry` next to the repo, or `ACC_CORPUS`. Never copy those files into the repo. `!!!BrokenOrToVerify/SYSTEM_BROKEN_Blanco` can't be opened by Registry 2026.5.0.
+- `CorpusTests`: every SYSTEM hive (file type 0, so not the logs) in `Corpus/Registry` next to the repo, or `ACC_CORPUS`. Never copy those files into the repo. `!!!BrokenOrToVerify/SYSTEM_BROKEN_Blanco` (opened since Registry 2026.10.0) has " END OF IMG!PAST" filler as its value, which is reported as an unknown format.
 - Validated against regipy's ShimCacheParser (Mandiant's) over 36 SYSTEM hives (29 corpus, 7 Museum): every path and time agrees, apart from packaged app entries (it skips them) and XP order (it uses slot order). It can't read the original Windows 10 header or Windows 8.0.
 
 ## Versioning and release
