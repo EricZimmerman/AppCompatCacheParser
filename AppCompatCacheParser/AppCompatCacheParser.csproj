@@ -7,7 +7,7 @@
     <Product>AppCompatCacheParser</Product>
     <Description>Shimcache parser</Description>
     <LangVersion>10</LangVersion>
-    <Copyright>Eric Zimmerman</Copyright>
+    <Copyright>Eric R. Zimmerman 2027</Copyright>
     <Version>2026.10.0</Version>
     <IsPackable>false</IsPackable>
   </PropertyGroup>

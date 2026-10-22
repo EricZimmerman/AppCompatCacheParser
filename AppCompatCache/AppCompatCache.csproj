@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyTitle>AppCompatCache</AssemblyTitle>
     <Product>AppCompatCache</Product>
-    <Copyright>Eric Zimmerman</Copyright>
+    <Copyright>Eric R. Zimmerman 2027</Copyright>
     <Authors>Eric Zimmerman</Authors>
     <LangVersion>10</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
