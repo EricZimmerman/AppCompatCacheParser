@@ -40,7 +40,7 @@ The layouts are libyal's winreg-kb (`Application-compatibility-cache.md`); the f
 ## Error model
 
 - `AppCompatCacheParseException` (`Offset`, `Field`): the value is too small or not a known format ("Unable to determine operating system!...").
-- A damaged entry goes to the cache's `ParseErrors`. The variable size formats stop there (the entries before it are kept); the fixed size ones (XP, Vista, 7) go on with the next entry.
+- A damaged entry goes to the cache's `ParseErrors`. The variable size formats stop there (the entries before it are kept); the fixed size ones (XP, Vista, 7) go on with the next entry. AppCompatCacheParser writes what was read and exits with 1 (exit codes: 0, or 1 for bad arguments, a hive that could not be read, no cache, a damaged entry or a CSV that could not be written).
 - AppCompatCacheParser returns 1 for bad arguments, a hive that can't be read, no cache, or a CSV that can't be written, and 0 otherwise. No CSV is written when there is no cache.
 
 ## Tests

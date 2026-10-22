@@ -143,7 +143,7 @@ internal class Program
         return exitCode;
     }
 
-    /// <returns>0 when the hive was processed, 1 when it could not be (or no cache was found, or the CSV could not be written)</returns>
+    /// <returns>0 when the hive was processed, 1 when it could not be (or no cache was found, an entry was damaged, or the CSV could not be written)</returns>
     private static int DoWork(string f,string csv,string csvf,int c, bool t,string dt,bool nl,bool debug,bool trace)
     {
         var levelSwitch = new LoggingLevelSwitch();
@@ -260,6 +260,9 @@ internal class Program
                 return 1;
             }
 
+            //damaged entries: what could be read is written, and the exit code is 1
+            var parseErrors = 0;
+
             using (var sw = new StreamWriter(outFilename))
             {
                 var csvWriter = new CsvWriter(sw,CultureInfo.InvariantCulture);
@@ -306,6 +309,7 @@ internal class Program
                     foreach (var parseError in appCompatCach.ParseErrors)
                     {
                         Log.Warning("ControlSet00{ControlSet}: {Error}",appCompatCach.ControlSet,parseError);
+                        parseErrors += 1;
                     }
 
                     if (appCompatCach.SlackEntries.Count > 0)
@@ -340,7 +344,7 @@ internal class Program
             Log.Warning("Results saved to '{OutFilename}'",outFilename);
             Console.WriteLine();
 
-            return 0;
+            return parseErrors > 0 ? 1 : 0;
         }
         catch (Exception ex)
         {
