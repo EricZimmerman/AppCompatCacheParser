@@ -144,7 +144,29 @@ public class HiveTests
         //no CSV is written when there is nothing to put in it
         var notAHive = Path.Combine(_dir, "junk");
         File.WriteAllBytes(notAHive, new byte[4096]);
-        Run("-f", notAHive, "--csv", Path.Combine(_dir, "junkout")).ExitCode.Should().Be(1);
+        Run("-f", notAHive, "--csv", Path.Combine(_dir, "junkout")).ExitCode.Should().Be(0, "a damaged hive is not the tool's fault");
         Directory.Exists(Path.Combine(_dir, "junkout")).Should().BeFalse();
+
+        //output that can't be written: --csv is a file
+        var file = Path.Combine(_dir, "a file");
+        File.WriteAllText(file, "x");
+        var (code, output) = Run("-f", Path.Combine(_dir, "SYSTEM"), "--csv", file, "--nl");
+        code.Should().Be(1, output);
+    }
+
+    [Test]
+    public void HiveThatCantBeReadIsAnError()
+    {
+        if (OperatingSystem.IsWindows() == false)
+        {
+            Assert.Ignore("Locking a file for everyone else is Windows only");
+        }
+
+        var hive = Hive();
+        using (new FileStream(hive, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            var (code, output) = Run("-f", hive, "--csv", Path.Combine(_dir, "out"));
+            code.Should().Be(1, output);
+        }
     }
 }

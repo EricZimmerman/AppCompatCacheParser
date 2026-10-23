@@ -257,12 +257,12 @@ internal class Program
                 Console.WriteLine();
                 Log.Warning("No caches were found!");
                 Console.WriteLine();
-                return 1;
+                //nothing to do (exit code 0)
+                return 0;
             }
 
-            //damaged entries: what could be read is written, and the exit code is 1
-            var parseErrors = 0;
-
+            //damaged entries: what could be read is written and they are listed; a damaged cache is not the tool's fault
+            //(exit code 0)
             using (var sw = new StreamWriter(outFilename))
             {
                 var csvWriter = new CsvWriter(sw,CultureInfo.InvariantCulture);
@@ -309,7 +309,6 @@ internal class Program
                     foreach (var parseError in appCompatCach.ParseErrors)
                     {
                         Log.Warning("ControlSet00{ControlSet}: {Error}",appCompatCach.ControlSet,parseError);
-                        parseErrors += 1;
                     }
 
                     if (appCompatCach.SlackEntries.Count > 0)
@@ -344,7 +343,7 @@ internal class Program
             Log.Warning("Results saved to '{OutFilename}'",outFilename);
             Console.WriteLine();
 
-            return parseErrors > 0 ? 1 : 0;
+            return 0;
         }
         catch (Exception ex)
         {
@@ -385,8 +384,26 @@ internal class Program
 
             }
 
-            return 1;
+            //1 when the tool fails: the live Registry, a hive that could not be accessed or read, a dirty hive without its
+            //logs, a -c ControlSet that is not there, or output that can't be written. A damaged hive or cache is 0
+            return f.IsNullOrEmpty() || CouldNotProcess(ex) ? 1 : 0;
         }
+    }
+
+    private static bool CouldNotProcess(Exception ex)
+    {
+        for (var e = ex; e != null; e = e.InnerException)
+        {
+            //EndOfStreamException is an IOException, but means a truncated file
+            if (e is IOException and not EndOfStreamException or UnauthorizedAccessException ||
+                e.Message.Contains("Administrator privileges not found") || e.Message.Contains("transaction logs were not found") ||
+                e.Message.Contains("Could not find ControlSet") || e.Message.Contains("Invalid diskName:"))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private class CustomHelpAction : SynchronousCommandLineAction
