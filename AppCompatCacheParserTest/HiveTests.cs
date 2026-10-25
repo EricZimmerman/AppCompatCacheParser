@@ -124,18 +124,21 @@ public class HiveTests
     [Test]
     public void ConsoleLog()
     {
-        //Issues #259: --co saves the console messages to <yyyyMMddHHmmss>_AppCompatCacheParser_<version>_ConsoleLog.txt in the --csv directory
+        //Issues #259: --co (on by default) saves the console messages to <yyyyMMddHHmmss>_AppCompatCacheParser_<version>_ConsoleLog.txt in the --csv directory
         var hive = Hive();
         var csv = Path.Combine(_dir, "out");
-        var (code, output) = Run("-f", hive, "--csv", csv, "--csvf", "a.csv");
+        var (code, output) = Run("-f", hive, "--csv", csv, "--csvf", "a.csv", "--co", "false");
         code.Should().Be(0, output);
-        Directory.GetFiles(csv, "*_ConsoleLog.txt").Should().BeEmpty("--co is off by default");
+        Directory.GetFiles(csv, "*_ConsoleLog.txt").Should().BeEmpty("--co false turns it off");
         output.Should().NotContain("Console log:");
 
-        (code, output) = Run("-f", hive, "--csv", csv, "--csvf", "a.csv", "--co");
+        Directory.Delete(csv, true);
+        (code, output) = Run("-f", hive, "--csv", csv);
         code.Should().Be(0, output);
-        var log = Directory.GetFiles(csv, "*_ConsoleLog.txt").Should().ContainSingle().Subject;
+        var log = Directory.GetFiles(csv, "*_ConsoleLog.txt").Should().ContainSingle("--co is on by default").Subject;
         Path.GetFileName(log).Should().MatchRegex(@"^\d{14}_AppCompatCacheParser_\d+\.\d+\.\d+_ConsoleLog\.txt$");
+        //the CSV name has the same (UTC) time as the log
+        Path.GetFileName(Directory.GetFiles(csv, "*.csv").Should().ContainSingle().Subject).Should().StartWith(Path.GetFileName(log)[..14] + "_");
         output.Should().Contain("Console log: " + log);
         var text = File.ReadAllText(log);
         text.Should().MatchRegex(@"\[\d\d:\d\d:\d\d\.\d{3} INF\] AppCompatCache Parser version ");
@@ -165,7 +168,7 @@ public class HiveTests
         //no CSV is written when there is nothing to put in it
         var notAHive = Path.Combine(_dir, "junk");
         File.WriteAllBytes(notAHive, new byte[4096]);
-        Run("-f", notAHive, "--csv", Path.Combine(_dir, "junkout")).ExitCode.Should().Be(0, "a damaged hive is not the tool's fault");
+        Run("-f", notAHive, "--csv", Path.Combine(_dir, "junkout"), "--co", "false").ExitCode.Should().Be(0, "a damaged hive is not the tool's fault");
         Directory.Exists(Path.Combine(_dir, "junkout")).Should().BeFalse();
 
         //output that can't be written: --csv is a file

@@ -36,7 +36,7 @@ Options:
   --nl            When true, ignore transaction log files for dirty hives
   --debug         Show debug information during processing
   --trace         Show trace information during processing
-  --co            Save all console messages to <timestamp>_AppCompatCacheParser_<version>_ConsoleLog.txt in the --csv directory
+  --co            When true, save all console messages to <timestamp>_AppCompatCacheParser_<version>_ConsoleLog.txt in the --csv directory. Use --co false to turn it off
   -?, -h, --help  Show help and usage information
   --version       Show version information
 ```
@@ -52,7 +52,7 @@ AppCompatCacheParser.exe --csv c:\temp --csvf results.csv
 
 ## Output
 
-`--csv` is required. The CSV is named `<timestamp>_<Windows version>_<hive name>_AppCompatCache.csv`
+`--csv` is required. The CSV is named `<timestamp>_<Windows version>_<hive name>_AppCompatCache.csv` (the UTC time the run started, the same as the console log's)
 (`..._ControlSet00<n>_AppCompatCache.csv` with `-c`, and the computer's name instead of the hive's for the live Registry),
 with these columns:
 
@@ -120,7 +120,7 @@ var fromValue = new AppCompatCache.AppCompatCache(File.ReadAllBytes("AppCompatCa
 - A damaged entry is reported and the rest of the cache is still read; Windows 7 and Vista/2008 values are read with the
   right 32/64 bit layout when the hive's architecture value is missing or wrong.
 - Exit code 1 when the tool fails (it was always 0). Error reports include source file and line numbers.
-- `--co` saves all console messages to `<yyyyMMddHHmmss>_AppCompatCacheParser_<version>_ConsoleLog.txt` in the `--csv` directory (time in UTC; Issues #259) (2026.10.1).
+- `--co` (on by default; `--co false` turns it off) saves all console messages to `<yyyyMMddHHmmss>_AppCompatCacheParser_<version>_ConsoleLog.txt` in the `--csv` directory (time in UTC; Issues #259). CSV names use the UTC time, like the console log and the other tools (they used local time) (2026.10.1).
 
 The full list is in the [ChangeLog](https://ericzimmerman.github.io/changelog/).
 

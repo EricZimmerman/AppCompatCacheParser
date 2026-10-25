@@ -117,8 +117,8 @@ internal class Program
         };
         var coOpt = new Option<bool>("--co")
         {
-            Description = "Save all console messages to <timestamp>_AppCompatCacheParser_<version>_ConsoleLog.txt in the --csv directory",
-            DefaultValueFactory = _ => false
+            Description = "When true, save all console messages to <timestamp>_AppCompatCacheParser_<version>_ConsoleLog.txt in the --csv directory. Use --co false to turn it off",
+            DefaultValueFactory = _ => true
         };
             
         _rootCommand = new RootCommand
@@ -172,7 +172,10 @@ internal class Program
             .WriteTo.Console(outputTemplate: template)
             .MinimumLevel.ControlledBy(levelSwitch);
 
-        var consoleLog = co ? ConsoleLog.GetPath(DateTimeOffset.UtcNow, csv) : null;
+        //one UTC time per run, for the CSV name and the console log
+        var runTime = DateTimeOffset.UtcNow;
+
+        var consoleLog = co ? ConsoleLog.GetPath(runTime, csv) : null;
         if (consoleLog != null)
         {
             conf.WriteTo.File(consoleLog, outputTemplate: ConsoleLog.Template);
@@ -219,11 +222,6 @@ internal class Program
             Log.Information("Console log: {Path}",consoleLog);
             Console.WriteLine();
         }
-        else if (co)
-        {
-            Log.Warning("--co: no output directory was given, so the console messages are not saved");
-            Console.WriteLine();
-        }
 
         if (IsAdministrator() == false)
         {
@@ -241,7 +239,7 @@ internal class Program
                 c,nl);
 
             string outFileBase;
-            var ts1 = DateTime.Now.ToString("yyyyMMddHHmmss");
+            var ts1 = runTime.ToString("yyyyMMddHHmmss");
 
             if (f?.Length > 0)
             {
