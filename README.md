@@ -7,7 +7,7 @@ Windows 10 and Windows 11.
 
 | | |
 |---|---|
-| **Version** | 2026.10.0 |
+| **Version** | 2026.10.1 |
 | **Download** | [.NET 10](https://download.ericzimmermanstools.com/net/AppCompatCacheParser.zip) (recommended) &middot; [.NET Framework 4.7.2](https://download.ericzimmermanstools.com/AppCompatCacheParser.zip) |
 | **All tools** | [ericzimmerman.github.io](https://ericzimmerman.github.io) or [Get-ZimmermanTools](https://download.ericzimmermanstools.com/Get-ZimmermanTools.zip), which downloads them all and keeps them current |
 | **Changes** | [ChangeLog](https://ericzimmerman.github.io/changelog/) |
@@ -36,6 +36,7 @@ Options:
   --nl            When true, ignore transaction log files for dirty hives
   --debug         Show debug information during processing
   --trace         Show trace information during processing
+  --co            Save all console messages to <timestamp>_AppCompatCacheParser_<version>_ConsoleLog.txt in the --csv directory
   -?, -h, --help  Show help and usage information
   --version       Show version information
 ```
@@ -119,6 +120,7 @@ var fromValue = new AppCompatCache.AppCompatCache(File.ReadAllBytes("AppCompatCa
 - A damaged entry is reported and the rest of the cache is still read; Windows 7 and Vista/2008 values are read with the
   right 32/64 bit layout when the hive's architecture value is missing or wrong.
 - Exit code 1 when the tool fails (it was always 0). Error reports include source file and line numbers.
+- `--co` saves all console messages to `<yyyyMMddHHmmss>_AppCompatCacheParser_<version>_ConsoleLog.txt` in the `--csv` directory (time in UTC; Issues #259) (2026.10.1).
 
 The full list is in the [ChangeLog](https://ericzimmerman.github.io/changelog/).
 

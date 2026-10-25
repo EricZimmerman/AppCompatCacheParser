@@ -122,6 +122,27 @@ public class HiveTests
     }
 
     [Test]
+    public void ConsoleLog()
+    {
+        //Issues #259: --co saves the console messages to <yyyyMMddHHmmss>_AppCompatCacheParser_<version>_ConsoleLog.txt in the --csv directory
+        var hive = Hive();
+        var csv = Path.Combine(_dir, "out");
+        var (code, output) = Run("-f", hive, "--csv", csv, "--csvf", "a.csv");
+        code.Should().Be(0, output);
+        Directory.GetFiles(csv, "*_ConsoleLog.txt").Should().BeEmpty("--co is off by default");
+        output.Should().NotContain("Console log:");
+
+        (code, output) = Run("-f", hive, "--csv", csv, "--csvf", "a.csv", "--co");
+        code.Should().Be(0, output);
+        var log = Directory.GetFiles(csv, "*_ConsoleLog.txt").Should().ContainSingle().Subject;
+        Path.GetFileName(log).Should().MatchRegex(@"^\d{14}_AppCompatCacheParser_\d+\.\d+\.\d+_ConsoleLog\.txt$");
+        output.Should().Contain("Console log: " + log);
+        var text = File.ReadAllText(log);
+        text.Should().MatchRegex(@"\[\d\d:\d\d:\d\d\.\d{3} INF\] AppCompatCache Parser version ");
+        text.Should().Contain("Command line: -f ").And.Contain("Found 359 cache entries for Windows10C_11 in ControlSet001");
+    }
+
+    [Test]
     public void SortedByTime()
     {
         var (code, output) = Run("-f", Hive(), "--csv", Path.Combine(_dir, "out"), "--csvf", "a.csv", "-t", "--dt", "yyyy-MM-dd HH:mm:ss.fffffff");

@@ -8,7 +8,7 @@
     <Description>Shimcache parser</Description>
     <LangVersion>10</LangVersion>
     <Copyright>Eric R. Zimmerman 2027</Copyright>
-    <Version>2026.10.0</Version>
+    <Version>2026.10.1</Version>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <PropertyGroup>
@@ -38,6 +38,7 @@
     </PackageReference>
     <PackageReference Include="Serilog" Version="4.4.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="ServiceStack.Text" Version="10.4.2" />
     
   </ItemGroup>

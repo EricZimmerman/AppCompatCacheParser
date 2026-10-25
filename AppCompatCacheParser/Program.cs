@@ -115,6 +115,11 @@ internal class Program
             Description = "Show trace information during processing",
             DefaultValueFactory = _ => false
         };
+        var coOpt = new Option<bool>("--co")
+        {
+            Description = "Save all console messages to <timestamp>_AppCompatCacheParser_<version>_ConsoleLog.txt in the --csv directory",
+            DefaultValueFactory = _ => false
+        };
             
         _rootCommand = new RootCommand
         {
@@ -126,14 +131,15 @@ internal class Program
           dtOpt,
           nlOpt,
           debugOpt,
-          traceOpt
+          traceOpt,
+          coOpt
           };
             
         _rootCommand.Description = Header + "\r\n\r\n" + Footer;
 
         _rootCommand.SetAction(result => DoWork(result.GetValue(fOpt), result.GetValue(csvOpt), result.GetValue(csvfOpt),
             result.GetValue(cOpt), result.GetValue(tOpt), result.GetValue(dtOpt), result.GetValue(nlOpt),
-            result.GetValue(debugOpt),result.GetValue(traceOpt)));
+            result.GetValue(debugOpt),result.GetValue(traceOpt),result.GetValue(coOpt)));
             
 
         var exitCode = await _rootCommand.Parse(args).InvokeAsync();
@@ -144,7 +150,7 @@ internal class Program
     }
 
     /// <returns>0 when the hive was processed, 1 when it could not be (or no cache was found, an entry was damaged, or the CSV could not be written)</returns>
-    private static int DoWork(string f,string csv,string csvf,int c, bool t,string dt,bool nl,bool debug,bool trace)
+    private static int DoWork(string f,string csv,string csvf,int c, bool t,string dt,bool nl,bool debug,bool trace,bool co)
     {
         var levelSwitch = new LoggingLevelSwitch();
 
@@ -165,6 +171,12 @@ internal class Program
         var conf = new LoggerConfiguration()
             .WriteTo.Console(outputTemplate: template)
             .MinimumLevel.ControlledBy(levelSwitch);
+
+        var consoleLog = co ? ConsoleLog.GetPath(DateTimeOffset.UtcNow, csv) : null;
+        if (consoleLog != null)
+        {
+            conf.WriteTo.File(consoleLog, outputTemplate: ConsoleLog.Template);
+        }
       
         Log.Logger = conf.CreateLogger();
         
@@ -201,6 +213,17 @@ internal class Program
         Console.WriteLine();
         Log.Information("Command line: {Args}",string.Join(" ", _args));
         Console.WriteLine();
+
+        if (consoleLog != null)
+        {
+            Log.Information("Console log: {Path}",consoleLog);
+            Console.WriteLine();
+        }
+        else if (co)
+        {
+            Log.Warning("--co: no output directory was given, so the console messages are not saved");
+            Console.WriteLine();
+        }
 
         if (IsAdministrator() == false)
         {
