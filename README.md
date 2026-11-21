@@ -7,7 +7,7 @@ Windows 10 and Windows 11.
 
 | | |
 |---|---|
-| **Version** | 2026.10.1 |
+| **Version** | 2026.11.0 |
 | **Download** | [.NET 10](https://download.ericzimmermanstools.com/net/AppCompatCacheParser.zip) (recommended) &middot; [.NET Framework 4.7.2](https://download.ericzimmermanstools.com/AppCompatCacheParser.zip) |
 | **All tools** | [ericzimmerman.github.io](https://ericzimmerman.github.io) or [Get-ZimmermanTools](https://download.ericzimmermanstools.com/Get-ZimmermanTools.zip), which downloads them all and keeps them current |
 | **Changes** | [ChangeLog](https://ericzimmerman.github.io/changelog/) |
@@ -105,6 +105,10 @@ var fromValue = new AppCompatCache.AppCompatCache(File.ReadAllBytes("AppCompatCa
 |---|---|
 | `0` | Success. Damaged hives and cache entries are reported but are not a failure, nor is a hive without a cache |
 | `1` | The tool failed: invalid arguments (no `--csv`) or a `-c` ControlSet that doesn't exist, a missing `-f` file, a hive (or the live Registry) it can't access or read, a dirty hive without its transaction logs (unless `--nl`), or a CSV that can't be written |
+
+## What's new in 2026.11
+
+- Moved to CsvHelper 34, a rewrite of the CSV library; the CSV output is byte for byte the same as 2026.10's.
 
 ## What's new in 2026.10
 
