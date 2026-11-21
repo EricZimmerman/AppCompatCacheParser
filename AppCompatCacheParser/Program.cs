@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using AppCompatCache;
-using CsvHelper.TypeConversion;
+using CsvHelper;
 using Exceptionless;
 using Serilog;
 using Serilog.Core;
@@ -284,39 +284,12 @@ internal class Program
 
             //damaged entries: what could be read is written and they are listed; a damaged cache is not the tool's fault
             //(exit code 0)
-            using (var sw = new StreamWriter(outFilename))
+            //the same output as CsvHelper 33 (UTF-8 without a BOM); the columns are in CacheEntryMap, LastModifiedTimeUTC
+            //in the --dt format
+            DateTimeFormatConverter.Format = dt;
+            using (var csvWriter = CsvWriter.ToFile(outFilename, CsvOutput.Options))
             {
-                var csvWriter = new CsvWriter(sw,CultureInfo.InvariantCulture);
-
-                var foo = csvWriter.Context.AutoMap<CacheEntry>();
-                var o = new TypeConverterOptions
-                {
-                    DateTimeStyle = DateTimeStyles.AssumeUniversal & DateTimeStyles.AdjustToUniversal
-                };
-                csvWriter.Context.TypeConverterOptionsCache.AddOptions<CacheEntry>(o);
-
-                foo.Map(entry => entry.LastModifiedTimeUTC).Convert(entry=>entry.Value.LastModifiedTimeUTC.HasValue ? entry.Value.LastModifiedTimeUTC.Value.ToString(dt): "");
-
-                foo.Map(entry => entry.CacheEntrySize).Ignore();
-                foo.Map(entry => entry.Data).Ignore();
-                foo.Map(entry => entry.InsertFlags).Ignore();
-                foo.Map(entry => entry.DataSize).Ignore();
-                foo.Map(entry => entry.LastModifiedFILETIMEUTC).Ignore();
-                foo.Map(entry => entry.LastUpdateTimeUTC).Ignore();
-                foo.Map(entry => entry.PathSize).Ignore();
-                foo.Map(entry => entry.Signature).Ignore();
-
-                foo.Map(entry => entry.ControlSet).Index(0);
-                foo.Map(entry => entry.CacheEntryPosition).Index(1);
-                foo.Map(entry => entry.Path).Index(2);
-                foo.Map(entry => entry.LastModifiedTimeUTC).Index(3);
-                foo.Map(entry => entry.Executed).Index(4);
-                foo.Map(entry => entry.Duplicate).Index(5);
-                foo.Map(entry => entry.SourceFile).Index(6);
-                foo.Map(entry => entry.FromSlack).Index(7);
-
                 csvWriter.WriteHeader<CacheEntry>();
-                csvWriter.NextRecord();
 
                 var cacheKeys = new HashSet<string>();
 
@@ -353,11 +326,8 @@ internal class Program
                         cacheKeys.Add(cacheEntry.GetKey());
 
                         csvWriter.WriteRecord(cacheEntry);
-                        csvWriter.NextRecord();
                     }
                 }
-
-                sw.Flush();
             }
 
             Console.WriteLine();

@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Overview
 
 - **`AppCompatCache`**: a `netstandard2.0` NuGet library (package id `AppCompatCache`) that parses the AppCompatCache (ShimCache) value of a SYSTEM hive, or a raw value. It opens hives with the Registry package; fixes to hive or transaction log handling belong in Registry, followed by a package bump here.
-- **`AppCompatCacheParser`**: the command line tool (`net472;net10.0`) that writes it to CSV. Keep its columns and their order stable; new columns go at the end (`FromSlack` is the last).
+- **`AppCompatCacheParser`**: the command line tool (`net472;net10.0`) that writes it to CSV. Keep its columns and their order stable; new columns go at the end (`FromSlack` is the last). They are in `CacheEntryMap` (a CsvHelper 34 `[CsvRecordMap]` for the library's `CacheEntry`; `DateTimeFormatConverter` writes `--dt`), and `CsvOutput.Options` keeps CsvHelper 33's bytes (True/False, quotes only for a comma, quote, CR/LF or a leading/trailing space, no BOM).
 
 Input may be corrupt or hostile.
 
